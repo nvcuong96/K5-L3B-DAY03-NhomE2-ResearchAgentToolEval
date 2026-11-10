@@ -18,16 +18,27 @@ OPENROUTER_API_KEY=<your-key>
 Alternatives:
 
 ```bash
+GROQ_API_KEY=<your-key>
 OPENAI_API_KEY=<your-key>
 ANTHROPIC_API_KEY=<your-key>
 GEMINI_API_KEY=<your-key>
 ```
+
+Groq uses the OpenAI-compatible client already included in `requirements.txt`.
+The starter's Groq provider defaults to `openai/gpt-oss-20b`; verify current
+model limits and pricing in your Groq console before running a full eval.
 
 Preflight:
 
 ```bash
 cd starter_v0
 python scripts/preflight_provider.py --provider openrouter
+```
+
+For Groq, run:
+
+```bash
+python scripts/preflight_provider.py --provider groq --model openai/gpt-oss-20b
 ```
 
 Local model (bonus Small Local Model Challenge, không cần API key):
