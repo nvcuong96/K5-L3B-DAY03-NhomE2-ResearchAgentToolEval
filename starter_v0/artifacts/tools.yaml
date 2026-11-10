@@ -112,3 +112,11 @@ tools:
         max_pages: {type: integer, default: 5, description: "Số trang tối đa cần trích xuất"}
         max_chars: {type: integer, default: 8000, description: "Số lượng ký tự tối đa"}
       required: [arxiv_url]
+  - name: hackernews
+    description: "Lấy danh sách bài nổi bật trên Hacker News (tiêu đề, URL, điểm). Dùng khi người dùng nhắc rõ 'Hacker News' hoặc 'HN'. KHÔNG dùng cho tin tức web nói chung (dùng lookup), tweet (dùng social_search/timeline), hoặc khi đã có URL bài cần đọc (dùng fetch)."
+    parameters:
+      type: object
+      properties:
+        story_type: {type: string, enum: [top, new, best], default: "top", description: "'hot/nổi bật/top' -> top; 'mới nhất' -> new; 'hay nhất' -> best. Không nói rõ thì dùng top."}
+        limit: {type: integer, default: 5, description: "Số bài. Nếu người dùng nêu số cụ thể ('top 10') thì dùng đúng số đó; không nêu thì dùng mặc định 5."}
+      required: []
