@@ -35,7 +35,7 @@ tools:
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: "Tìm bài đăng mạng xã hội theo từ khóa; không cần tên tài khoản để tìm kiếm."
     parameters:
       type: object
       properties:
@@ -49,7 +49,7 @@ tools:
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
+        query: {type: string, default: "", description: "Chỉ chứa chủ đề hoặc thực thể cần tìm; không thêm loại nội dung hay thời gian nếu đã có tham số topic hoặc timeframe."}
         topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
         timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
