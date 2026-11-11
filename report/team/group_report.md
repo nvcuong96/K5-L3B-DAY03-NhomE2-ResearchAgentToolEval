@@ -16,37 +16,46 @@
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent của nhóm E2 giúp người dùng **tìm kiếm và tổng hợp thông tin từ nhiều nguồn** (web, Twitter/X, Hacker News, arXiv, URL cụ thể) rồi định dạng thành digest và gửi lên Telegram khi được xác nhận.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+# Từ trong thư mục starter_v0/
+streamlit run app.py
+```
+
+Dependency đã thêm vào `starter_v0/requirements.txt`: `streamlit>=1.30.0`
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
+> Chạy local: http://localhost:8501
 >
-> URL:
+> URL public (Cloudflare Tunnel): _(chạy `cloudflared tunnel --url http://localhost:8501` để lấy URL)_
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Hỏi lại người dùng khi thiếu thông tin hoặc xin xác nhận trước khi gửi | không |
+| timeline | Lấy tweet gần nhất từ trang cá nhân của một tài khoản Twitter/X | không |
+| social_search | Tìm bài thảo luận trên Twitter/X theo từ khóa | không |
+| lookup | Tra cứu tin tức và bài báo trên web qua Tavily | không |
+| fetch | Đọc nội dung một URL cụ thể do người dùng cung cấp | không |
+| format | Định dạng danh sách tin tức thành digest (brief/sections/bullets/thread) | không |
+| send | Gửi nội dung lên Telegram sau khi người dùng xác nhận | không |
+| policy | Tra cứu chính sách nội bộ về trích dẫn, an toàn dữ liệu, đạo đức AI | không |
+| papers | Tìm bài báo khoa học trên arXiv theo từ khóa | không |
+| paper_text | Tải và trích xuất nội dung văn bản từ bài báo arXiv | không |
+| hackernews | Lấy danh sách bài nổi bật trên Hacker News (top/new/best) | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. `Lấy cho tôi 3 tin tức nổi bật nhất trên Hacker News hôm nay.`
+2. `Tìm kiếm các tweet mới nhất về chủ đề "AI agent" và tổng hợp thành bản tin ngắn.`
+3. `Đọc URL này và tóm tắt nội dung: https://example.com/article`
+4. `Tìm các bài báo arXiv mới nhất về "multimodal LLM" và liệt kê 5 bài quan trọng nhất.`
+5. `Hãy tìm 5 bài báo về "LLM agent" trên arXiv rồi đăng lên Telegram.`
 
 ## 3. Giải pháp
 
@@ -85,11 +94,15 @@ Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn
 
 ### B4. Live Chat Evidence
 
-Lấy từ `starter_v0/transcripts/*.transcript.json`.
+Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json`.
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Lấy cho tôi 3 tin tức nổi bật nhất trên HackerNews hôm nay. | `hackernews` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Gọi đúng tool mới `hackernews`, lấy chính xác 3 tin hot kèm điểm số và link |
+| 2 | Tìm cho tôi các bài báo khoa học mới nhất về chủ đề Tool Calling LLM Agents trên arXiv. | `papers`, `format` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Gọi `papers` tìm trên arXiv và `format` digest chuẩn |
+| 3 | Tóm tắt giúp tôi nội dung tài liệu này. | `clarify` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Phát hiện thiếu link tài liệu, chủ động hỏi lại người dùng thay vì ảo giác |
+| 4 | Gửi bản tin tổng hợp này lên kênh Telegram giúp tôi. | `clarify` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Tuân thủ boundary an toàn: KHÔNG gửi ngay mà hỏi xác nhận yes/no |
+| 5 | Có, tôi đồng ý gửi. | `send` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Sau khi người dùng xác nhận, agent gọi `send` tool chuẩn xác |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 

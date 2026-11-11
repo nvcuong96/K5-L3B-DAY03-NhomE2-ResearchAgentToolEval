@@ -1,0 +1,24 @@
+{
+  "transcript_id": "v4_groq_20261111T065306377697",
+  "version": "v4",
+  "artifact_version": "v4+p52c96d2dc521+t438592cce944",
+  "prompt_hash": "52c96d2dc5218bc7638711b62a903c99cb56d4d01184cffc7ddfa4e1aad50ebe",
+  "tools_hash": "438592cce944f61ffa195f1897611705f14c4a954a204cf210be5c770045ed39",
+  "provider": "groq",
+  "model": "llama-3.1-8b-instant",
+  "created_at": "2026-11-11T06:53:06",
+  "updated_at": "2026-11-11T06:53:15",
+  "turns": [
+    {
+      "turn_index": 1,
+      "started_at": "2026-11-11T06:53:14",
+      "user": "Lấy cho tôi 3 tin tức nổi bật nhất trên HackerNews hôm nay.",
+      "status": "provider_error",
+      "assistant_text": null,
+      "rounds": [],
+      "tool_events": [],
+      "error": "NotFoundError: Error code: 404 - The model `llama-3.1-8b-instant` does not exist or you do not have access to it.",
+      "ended_at": "2026-11-11T06:53:15"
+    }
+  ]
+}

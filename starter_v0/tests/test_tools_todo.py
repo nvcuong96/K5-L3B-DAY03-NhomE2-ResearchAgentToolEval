@@ -110,13 +110,52 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_my_new_tool_happy_path() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_get(path: str, timeout: int = 10):
+        if path == "topstories":
+            return [101, 102]
+        if path == "item/101":
+            return {"title": "AI Breakthrough", "url": "https://example.com/ai", "score": 150, "descendants": 42}
+        if path == "item/102":
+            return {"title": "New Python Version", "url": "https://example.com/py", "score": 80, "descendants": 10}
+        return {}
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_get)
+    result = get_hn_stories(story_type="top", limit=2)
+    assert result.get("tool") == "hackernews"
+    assert result.get("item_count") == 2
+    assert len(result.get("items", [])) == 2
+    assert result["items"][0]["title"] == "AI Breakthrough"
+    assert "150 điểm" in result["items"][0]["summary"]
 
 
-def test_my_new_tool_bad_input_from_model() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_bad_input_from_model(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_get(path: str, timeout: int = 10):
+        if path == "topstories":
+            return [101]
+        if path == "item/101":
+            return {"title": "Test Title", "score": 1, "descendants": 0}
+        return {}
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_get)
+    result = get_hn_stories(story_type="invalid_type_xyz", limit="not_a_number")  # type: ignore[arg-type]
+    assert result.get("tool") == "hackernews"
+    assert result.get("story_type") == "top"
+    assert len(result.get("items", [])) == 1
 
 
-def test_my_new_tool_failure_returns_error_dict() -> None:
-    pytest.skip(TODO)
+def test_my_new_tool_failure_returns_error_dict(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_fail(path: str, timeout: int = 10):
+        raise TimeoutError("Connection to Hacker News timed out")
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_fail)
+    result = get_hn_stories(story_type="top", limit=5)
+    assert "error" in result
+    assert result["error"] == "TimeoutError"
+    assert "Connection to Hacker News timed out" in result["message"]
