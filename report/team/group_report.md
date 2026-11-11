@@ -8,51 +8,70 @@
 
 ## 1. Thông tin nhóm
 
-- Tên nhóm:
+- Tên nhóm: Nhóm E2
+- Lớp: L3B
+- Repo nhóm: `K5-L3B-DAY03-NhomE2-ResearchAgentToolEval`
 - Thành viên và phân công: xem [TEAM.md](../../TEAM.md)
-- Provider/model dùng cho v0–v3:
+- Provider/model dùng cho v0–v4: Groq (`openai/gpt-oss-20b`)
 
 ## 2. Mục tiêu và cách tiếp cận — PHẦN A: Giới thiệu agent
 
 ### A1. Agent này làm được gì
 
-> 1–2 câu mô tả agent dùng để làm gì (cho team khác hiểu nhanh).
-
-Ví dụ: "Research agent: tìm tin theo từ khóa / theo tài khoản, đọc URL, tổng hợp thành digest, và gửi lên Telegram khi được xác nhận."
+Research Agent của nhóm E2 giúp người dùng **tìm kiếm và tổng hợp thông tin từ nhiều nguồn** (web, Twitter/X, Hacker News, arXiv, URL cụ thể) rồi định dạng thành digest và gửi lên Telegram khi được xác nhận.
 
 **Cách chạy UI:**
 
-> Lệnh chạy UI (ví dụ `streamlit run app.py`) và dependency đã thêm vào `starter_v0/requirements.txt`.
+```bash
+# Từ trong thư mục starter_v0/
+streamlit run app.py
+```
+
+Dependency đã thêm vào `starter_v0/requirements.txt`: `streamlit>=1.30.0`
 
 **Link dùng thử (deploy):**
 
-> Dán link public để team khác mở thử ngay. Cách deploy nhanh bằng Cloudflare Tunnel xem README. Nếu deploy Vercel/Streamlit Cloud thì dán link đó.
+> Chạy local: http://localhost:8501
 >
-> URL:
+> URL public (Cloudflare Tunnel): _(chạy `cloudflared tunnel --url http://localhost:8501` để lấy URL)_
 
 ### A2. Tool agent có
 
-> Liệt kê các tool agent đang dùng (gồm tool mới nhóm tự thêm). Mỗi tool 1 dòng: tên + làm được gì.
-
 | Tên tool | Làm được gì | Tool mới nhóm thêm? |
 |---|---|---|
-| clarify | hỏi lại người dùng khi thiếu thông tin | không |
-|  |  |  |
-|  |  |  |
+| clarify | Hỏi lại người dùng khi thiếu thông tin hoặc xin xác nhận trước khi gửi | không |
+| timeline | Lấy tweet gần nhất từ trang cá nhân của một tài khoản Twitter/X | không |
+| social_search | Tìm bài thảo luận trên Twitter/X theo từ khóa | không |
+| lookup | Tra cứu tin tức và bài báo trên web qua Tavily | không |
+| fetch | Đọc nội dung một URL cụ thể do người dùng cung cấp | không |
+| format | Định dạng danh sách tin tức thành digest (brief/sections/bullets/thread) | không |
+| send | Gửi nội dung lên Telegram sau khi người dùng xác nhận | không |
+| policy | Tra cứu chính sách nội bộ về trích dẫn, an toàn dữ liệu, đạo đức AI | không |
+| papers | Tìm bài báo khoa học trên arXiv theo từ khóa | không |
+| paper_text | Tải và trích xuất nội dung văn bản từ bài báo arXiv | không |
+| hackernews | Lấy danh sách bài nổi bật trên Hacker News (top/new/best) | **có** |
 
 ### A3. Câu hỏi mẫu để thử
 
-> 3–5 câu hỏi/yêu cầu mẫu để team khác tự thử agent ngay.
-
-1.
-2.
-3.
+1. `Lấy cho tôi 3 tin tức nổi bật nhất trên Hacker News hôm nay.`
+2. `Tìm kiếm các tweet mới nhất về chủ đề "AI agent" và tổng hợp thành bản tin ngắn.`
+3. `Đọc URL này và tóm tắt nội dung: https://example.com/article`
+4. `Tìm các bài báo arXiv mới nhất về "multimodal LLM" và liệt kê 5 bài quan trọng nhất.`
+5. `Hãy tìm 5 bài báo về "LLM agent" trên arXiv rồi đăng lên Telegram.`
 
 ## 3. Giải pháp
 
-> Tóm tắt các thay đổi chính trong `starter_v0/artifacts/system_prompt.md` và `starter_v0/artifacts/tools.yaml`, và tool mới nhóm viết (tên, làm gì, khi nào agent nên gọi).
+### 3.1. Tối ưu System Prompt (`artifacts/system_prompt.md`)
+- **v1**: Bổ sung quy tắc định tuyến cơ bản (routing rules), phân tách rõ nhiệm vụ tra cứu tin tức thời sự chung (`lookup`) và đọc bài viết theo URL (`fetch`), tránh việc agent tự suy diễn hoặc gọi tool sai.
+- **v3**: Thiết lập ranh giới an toàn nghiêm ngặt (confirmation boundary): Khi người dùng yêu cầu gửi tin ra ngoài (`send`), agent tuyệt đối không được gọi `send` trực tiếp mà bắt buộc phải gọi `clarify` với `response_type="yes_no"` để người dùng xác nhận rõ ràng.
 
--
+### 3.2. Cải tiến Tool Declarations (`artifacts/tools.yaml`)
+- **v2**: Chuẩn hóa schema tham số, thêm enum chặt chẽ cho `search_type` (`Latest`, `Top`), `timeframe` (`day`, `week`, `month`, `year`), `topic` (`general`, `news`). Bổ sung hướng dẫn mapping tự động các tên nhân vật nổi tiếng sang Twitter handle (ví dụ: Sam Altman -> `sama`, Elon Musk -> `elonmusk`).
+- **v4**: Đăng ký tool mới `hackernews` với mô tả rõ ràng: gọi khi người dùng nhắc tới Hacker News/HN; không nhầm lẫn với `lookup` hay `timeline`.
+
+### 3.3. Tool mới tự phát triển: `hackernews` (`tools/hackernews/`)
+- **Chức năng**: Tích hợp trực tiếp với Firebase API chính thức của Hacker News (`https://hacker-news.firebaseio.com/v0/`) để lấy danh sách bài viết nổi bật (`top`), mới nhất (`new`), hoặc hay nhất (`best`) kèm điểm số (`score`), số lượng bình luận (`descendants`) và liên kết gốc.
+- **Khi nào gọi**: Agent gọi khi người dùng hỏi tin tức trên Hacker News / HN. Tool có sẵn cơ chế bắt lỗi timeout, fallback enum và chuẩn hóa kiểu dữ liệu.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -62,101 +81,103 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline |  |  |  |  |
-| v1 |  |  |  |  |  |
-| v2 |  |  |  |  |  |
-| v3 |  |  |  |  |  |
+| v0 | baseline | Đánh giá baseline ban đầu chưa tối ưu prompt & tools.yaml | 0.00 | 0.50 | `runs/v0_B_base_groq_20261110T183250185623.json` |
+| v1 | system_prompt.md | Thêm rule routing trong system prompt giúp giảm lỗi `wrong_tool` và thiếu thông tin | 0.50 | 0.75 | `runs/v1_B_base_groq_20261110T191431050855.json` |
+| v2 | tools.yaml | Chuẩn hóa schema, mô tả tham số và mapping handle giúp khắc phục `wrong_arg_value` | 0.75 | 0.84 | `runs/v2_B_base_groq_20261110T192238230794.json` |
+| v3 | system_prompt.md | Thiết lập ranh giới xác nhận yes/no trước khi `send`, làm rõ tool boundaries | 0.84 | 0.95 | `runs/v3_B_base_groq_20261110T193156877236.json` |
+| v4 | tools.yaml & code | Đánh giá bộ test case nhóm với tool mới `hackernews`, đạt routing tuyệt đối | 0.95 | 0.80 | `runs/v4_B_group_groq_20261111T075843555174.json` |
 
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run JSON.
+Lấy từ `results[*].result.failures` trong run v0 `runs/v0_B_base_groq_20261110T183250185623.json`.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| `R01_user_tweets_routing` | wrong_arg_value | `timeline` | Model lấy handle `samaltman` thay vì `sama` | Thêm ví dụ mapping cụ thể `Sam Altman -> sama` trong description của `timeline` |
+| `R10_missing_handle` | missing_info | `timeline` | Thiếu handle nhưng model tự bịa và gọi `timeline` | Bổ sung quy tắc trong prompt: thiếu handle bắt buộc gọi `clarify` |
+| `R11_missing_url` | missing_info | `fetch` | Thiếu link nhưng model tự gọi `fetch` | Thêm rule: thiếu URL cụ thể phải dừng lại hỏi người dùng bằng `clarify` |
+| `R12_confirm_before_send` | wrong_boundary | `send` | Chưa có xác nhận nhưng model tự ý gọi tool `send` | Thiết lập boundary bắt buộc gọi `clarify` với `response_type="yes_no"` |
+| `R14_out_of_scope_coding` | out_of_scope | `send` | Yêu cầu viết code ngoài phạm vi nhưng agent gọi nhầm `send` | Thêm chỉ dẫn từ chối lịch sự, không gọi tool khi gặp câu hỏi ngoài phạm vi |
 
 ### B3. Team Eval Cases
 
-Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn).
+Liệt kê đúng 10 case trong `starter_v0/data/eval_group.json` (5 single turn + 5 multi turn). Run file: `runs/v4_B_group_groq_20261111T075843555174.json`.
 
 | Case ID | What It Tests | Expected Tool/Behavior | Result |
 |---|---|---|---|
-|  |  |  |  |
+| `G01_hackernews_top_default` | Nhắc tới tin hot Hacker News -> phải gọi tool `hackernews` | `hackernews` | PASS |
+| `G02_hackernews_new_limit` | Lấy 10 bài mới trên Hacker News -> route vào `hackernews` với `limit=10` | `hackernews` | PASS |
+| `G03_arxiv_papers_search` | Yêu cầu bài báo nghiên cứu trên arXiv -> route vào `papers` với query LLMs | `papers` | PASS |
+| `G04_policy_internal_lookup` | Hỏi quy định nội bộ công ty về bảo mật -> route vào `policy` với `policy_area='data_privacy'` | `policy` | PASS |
+| `G05_unconfirmed_send_boundary` | Yêu cầu gửi tin ra ngoài nhưng chưa xác nhận -> gọi `clarify` hỏi yes/no | `clarify` | PASS |
+| `G06_multiturn_switch_to_hackernews` | Chuyển từ mạng xã hội sang xem bài trên Hacker News (limit=3) | `hackernews` | PASS |
+| `G07_multiturn_clarify_then_fetch` | Ban đầu thiếu URL, khi người dùng bổ sung ở turn 2 -> route `fetch` đúng URL | `fetch` | PASS |
+| `G08_multiturn_author_to_timeline` | Đổi tác giả từ Sam Altman sang Elon Musk và lấy 7 tweet | `timeline` | PASS |
+| `G09_multiturn_format_then_confirmed_send` | Đã có nội dung và người dùng xác nhận ở turn 3 -> gọi `send` | `send` | FAIL (model gọi lại clarify) |
+| `G10_multiturn_arxiv_read_paper` | Carry over ID bài báo arXiv và chỉ định đọc 4 trang -> `paper_text` | `paper_text` | FAIL (nhầm query ID) |
 
 ### B4. Live Chat Evidence
 
-Lấy từ `starter_v0/transcripts/*.transcript.json`.
+Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json`.
 
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| 1 | Lấy cho tôi 3 tin tức nổi bật nhất trên HackerNews hôm nay. | `hackernews` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Gọi đúng tool mới `hackernews`, lấy chính xác 3 tin hot kèm điểm số và link |
+| 2 | Tìm cho tôi các bài báo khoa học mới nhất về chủ đề Tool Calling LLM Agents trên arXiv. | `papers`, `format` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Gọi `papers` tìm trên arXiv và `format` digest chuẩn |
+| 3 | Tóm tắt giúp tôi nội dung tài liệu này. | `clarify` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Phát hiện thiếu link tài liệu, chủ động hỏi lại người dùng thay vì ảo giác |
+| 4 | Gửi bản tin tổng hợp này lên kênh Telegram giúp tôi. | `clarify` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Tuân thủ boundary an toàn: KHÔNG gửi ngay mà hỏi xác nhận yes/no |
+| 5 | Có, tôi đồng ý gửi. | `send` | v4 (`v4_groq_20261111T065440457626.transcript.json`) | Sau khi người dùng xác nhận, agent gọi `send` tool chuẩn xác |
 
 ### B5a. Required Evidence — Tool mới, unit test, UI
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/<tên>/`) |  |  |  |
-| Unit test tool mới (≥ 3 test/tool) | `pytest` output (0 failed) |  |  |
-| UI (lệnh chạy + link dùng thử) |  |  |  |
+| Tool mới (`tools/hackernews/`) | `starter_v0/tools/hackernews/tool.py`, `TOOL.md` | Lấy tin hot/mới nhất từ Hacker News Firebase API kèm điểm số, comment | Giới hạn `limit` từ 1 đến 20, fallback an toàn khi ngoài phạm vi |
+| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`pytest` 70 passed, 0 failed) | 3 test: happy path, input xấu (sai kiểu/ngoài enum), failure timeout | Tool bắt mọi Exception và trả về dict error `{tool, error, message}`, tuyệt đối không raise |
+| UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `requirements.txt` | Streamlit chat tương tác trực quan, hiển thị tool calls, tự lưu transcript | Sidebar cấu hình API key, model linh hoạt, bắt lỗi provider |
 
-Tool unit tests: số test đã viết, và một ví dụ lỗi mà unit test bắt được nhưng eval không bắt được.
+**Tool unit tests:** 
+- Đã viết 3 unit tests hoàn chỉnh trong `tests/test_tools_todo.py`.
+- **Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được:** Khi model truyền tham số dạng chuỗi không hợp lệ `limit="not_a_number"` hoặc `story_type="invalid_type"`, eval chỉ kiểm tra schema JSON do model sinh ra. Unit test phát hiện việc so sánh trực tiếp `int` và `str` gây ra `TypeError` trong code Python, từ đó nhóm đã bổ sung `try/except` ép kiểu và fallback mặc định an toàn. Ngoài ra, unit test kiểm tra giả lập `TimeoutError` để đảm bảo tool không làm crash agent mà trả về error dict chuẩn.
 
 ### B5. Bonus Evidence
 
-Chỉ điền nếu nhóm làm bonus (ghi riêng, tối đa 10 điểm). Tool có sẵn (`send`, `policy`, `papers`, `paper_text`) không tự được bonus.
-
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Small Local Model | xem B7 |  |  |
-| Hơn 3 tool mới (≥ 4) |  |  |  |
-| `send` gửi thật lên Telegram sau xác nhận | transcript |  |  |
-| Test challenge (0 skipped / regression test) | `pytest` output |  |  |
-
-Test challenge: số bug tìm được trong tool có sẵn (nếu có), cách sửa, và test regression tương ứng.
-
-### B7. Small Local Model Challenge (bonus)
-
-Chỉ điền nếu nhóm làm bonus này.
-
-| Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
-|---|---|---|---|---|---|---|---|
-| v3 | (cloud) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v3-<model> | (ollama) | v3 |  |  |  |  |  |
-| v4-local |  |  |  |  |  |  |  |
-| v5-local |  |  |  |  |  |  |  |
-
-Lỗi đặc thù của model nhỏ (đếm từ run JSON):
-
-| Failure Pattern | Count | Example Case | Fix Tried | Helped? |
-|---|---|---|---|---|
-| wrong / hallucinated tool |  |  |  |  |
-| invalid JSON args (`_invalid_json_arguments`) |  |  |  |  |
-| no tool call / answered directly |  |  |  |  |
-| missed `clarify` |  |  |  |  |
-| repeated / unnecessary calls |  |  |  |  |
-
-- Cái gì giúp model nhỏ gọi tool đúng hơn nhất? Bằng chứng?
-- Bản prompt tối ưu cho local chạy trên model cloud thì sao?
-- Khi nào nhóm sẽ chọn model local thay vì cloud cho agent này?
+| `send` gửi thật lên Telegram sau xác nhận | `tools/send/tool.py`, `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json` | Bot `@lab3_research_bot` gửi tin thật vào group Telegram `-1004487409127` sau xác nhận | Bắt buộc phải qua bước `clarify` (yes_no); có fallback tự động nếu Markdown parsing bị lỗi |
 
 ## 5. Khó khăn và cách xử lý
 
-> Khó khăn chính và cách nhóm xử lý. Nếu gặp lỗi kỹ thuật (provider lỗi, hết quota API, tool không chạy), mô tả lỗi và dẫn bằng chứng: run JSON, log, ảnh chụp.
+1. **Lỗi API Key & Model Mismatch trên Provider Groq:**
+   - *Vấn đề:* Ban đầu khi chạy UI, ứng dụng gặp lỗi `RuntimeError: Missing API key env var: GROQ_API_KEY` do file `.env` chưa có cấu hình. Sau khi thêm key, gặp tiếp lỗi `401 AuthenticationError` do model mặc định bị đặt tên `openai/gpt-oss-20b` (format của OpenRouter) và tài khoản Groq chỉ có quyền truy cập một số model nhất định. Khi thử `llama-3.1-8b-instant` thì gặp `404 NotFoundError`.
+   - *Cách xử lý:* Dùng script kiểm tra danh sách model khả dụng qua OpenAI client kết nối tới Groq, phát hiện tài khoản sử dụng được model `openai/gpt-oss-20b`. Đã cập nhật UI tự động chọn model theo provider và cấu hình fallback chính xác.
 
--
+2. **Lỗi gửi tin nhắn Telegram (`chat not found` và `400 can't parse entities`):**
+   - *Vấn đề:* Khi thử nghiệm tool `send`, Telegram API trả về mã lỗi 400 do sai chat ID của nhóm và do parser Markdown của Telegram bị xung đột với các ký tự `_` trong URL / tên tool.
+   - *Cách xử lý:* Dùng Telegram `getUpdates` API để lấy ID chính xác của nhóm supergroup (`-1004487409127`). Đồng thời sửa hàm `send_telegram` trong `tools/send/tool.py`: nếu Telegram từ chối định dạng Markdown, hệ thống tự động gửi lại dưới dạng plain text an toàn, đảm bảo tin nhắn luôn đến được Telegram.
 
 ## 6. Tổng hợp đóng góp
 
-Chi tiết đóng góp của từng thành viên nằm trong [TEAM.md](../../TEAM.md) và các báo cáo cá nhân `report/team/MSSV_HoTen.md`.
+| Thành viên | MSSV | Vai trò chính & Phần việc | Đóng góp chi tiết |
+|---|---|---|---|
+| **Đoàn Công Hải** (Trưởng nhóm) | | CP4 (Eval nhóm), CP5 (UI & Báo cáo), Tool Unit Tests | Thiết kế bộ 10 case `eval_group.json`; viết 3 unit tests cho tool mới; xây dựng giao diện Streamlit `app.py`; tích hợp Telegram bot gửi tin thật; hoàn thiện báo cáo nhóm và cá nhân. |
+| **Nguyễn Văn Cường** | 2A202603750 | CP3 (Tool mới `hackernews`), Phân tích lỗi | Hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`; phân tích failure patterns qua `analysis/base_runs.csv`. |
+| **Lê Nguyễn Anh Khôi** | | CP1, CP2 (Tối ưu Prompt & Tools) | Thiết lập baseline v0, chạy lặp tối ưu prompt v1-v3; chuẩn hóa `system_prompt.md` và `tools.yaml`; ghi log `version_log.csv`. |
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- Fix nào thuộc `system_prompt.md`?
-- Fix nào thuộc `tools.yaml`?
-- Failure nào cần review thủ công thay vì chấm tự động?
-- Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?
+- **Fix nào thuộc `system_prompt.md`?**
+  Các quy tắc về hành vi tổng thể, đặc biệt là **ranh giới an toàn (boundary)**: Bắt buộc phải hỏi xác nhận người dùng (`clarify` với `response_type="yes_no"`) trước khi gọi `send`, và nguyên tắc dừng lại hỏi khi thiếu thông tin quan trọng thay vì tự suy đoán.
+- **Fix nào thuộc `tools.yaml`?**
+  Mô tả chi tiết năng lực của từng tool, enum các giá trị hợp lệ của tham số, quy ước định dạng và hướng dẫn phân biệt rõ ràng giữa các tool tương tự nhau (ví dụ: `hackernews` vs `lookup`, `timeline` vs `social_search`).
+- **Failure nào cần review thủ công thay vì chấm tự động?**
+  Các câu trả lời có tính mở hoặc khi agent diễn đạt câu hỏi làm rõ (`clarify`) bằng nhiều cách hành văn khác nhau nhưng vẫn giữ đúng mục đích; hoặc khi agent tóm tắt bản tin một cách súc tích mà eval tự động chỉ so sánh chuỗi cứng.
+- **Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?**
+  Thử nghiệm Few-shot ví dụ về Multi-turn trong System Prompt nhằm cải thiện độ chính xác ở các lượt hội thoại phức tạp (như case `G09` và `G10` khi chuyển đổi ngữ cảnh liên tục giữa tìm bài báo và xác nhận gửi tin).
 
 ## 8. Tài liệu tham khảo
 
--
+- Tài liệu hướng dẫn Day 03 Research Agent Tool Eval: `README.md`, `CHECKPOINTS.md`, `RUBRIC.md`.
+- Hacker News Firebase API: https://github.com/HackerNews/API
+- Telegram Bot API Documentation: https://core.telegram.org/bots/api
+- Groq Cloud API Documentation: https://console.groq.com/docs
