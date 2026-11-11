@@ -37,4 +37,8 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
         response.raise_for_status()
         return {"tool": "send_telegram", "status": "sent"}
     except Exception as exc:
-        return err("send_telegram", exc)
+        msg = str(exc)
+        token = os.getenv("TELEGRAM_BOT_TOKEN")
+        if token and token in msg:
+            msg = msg.replace(token, "<REDACTED_TELEGRAM_TOKEN>")
+        return {"tool": "send_telegram", "error": type(exc).__name__, "message": msg}
