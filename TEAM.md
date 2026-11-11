@@ -13,7 +13,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Nguyễn Văn Cường | 2A202603750 | nvcuong9696@gmail.com | nvcuong96 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi |
 |   2 | Đoàn Công Hải | 2A202603739 | haidoan2004426@gmail.com | rawser246 | Thành viên, CP4, CP5 (UI & Báo cáo), Tích hợp Telegram |
-|   3 | Nguyễn Văn Hiếu | 2A202603746 | 26ai.hieunv3@vinuni.edu.vn | | Thành viên, Step 4b (Unit test suite & Regression tests) |
+|   3 | Nguyễn Văn Hiếu | 2A202603746 | 26ai.hieunv3@vinuni.edu.vn | lunaHieu | Thành viên, Step 4b (Unit test suite & Regression tests) |
 |   4 | Lê Nguyễn Anh Khôi | 2A202603755 | lnakhoi5a@gmail.com | KN16 | Thành viên, CP1, CP2 (Tối ưu Prompt & Tools v0-v3), Groq Provider |
 
 ## Cá nhân
@@ -39,7 +39,6 @@ Ví dụ: `report/team/2A202603750_NguyenVanCuong.md`, `report/team/2A202603739_
 - Hiện thực hàm `get_hn_stories` gọi public Hacker News Firebase API, giới hạn số bài trả về từ 1 đến 20 và chuẩn hóa dữ liệu thành tiêu đề, URL, nguồn, điểm số và số bình luận.
 - Thêm URL dự phòng trỏ tới trang thảo luận Hacker News nếu bài viết không có URL riêng; kiểm tra loại bài viết hợp lệ (`top`, `new`, `best`) và trả lỗi theo cấu trúc chuẩn dùng chung khi API hoặc đầu vào gặp sự cố.
 - Soạn thảo tài liệu `TOOL.md`, khai báo schema tham số trong `tools.yaml` và đăng ký tool trong `tools/__init__.py`.
-- Viết 3 unit test cho tool `hackernews` bao phủ kết quả bình thường, loại bài viết không hợp lệ và lỗi mạng (dùng mock để không phụ thuộc API thật).
 
 ### Bằng chứng
 
@@ -52,7 +51,6 @@ Ví dụ: `report/team/2A202603750_NguyenVanCuong.md`, `report/team/2A202603739_
 ### Phần việc phụ trách
 
 - Chịu trách nhiệm chính Checkpoint 4 (Bộ test case đánh giá nhóm 10 case) và Checkpoint 5 (Xây dựng Web UI Streamlit, tích hợp Telegram bot gửi tin nhắn thật, thu thập live transcript).
-- Viết 3 unit test cho tool mới `hackernews` trong `tests/test_tools_todo.py`.
 - Viết báo cáo cá nhân và hoàn thiện báo cáo nhóm `group_report.md`.
 
 ### Đóng góp cụ thể
@@ -86,6 +84,7 @@ Ví dụ: `report/team/2A202603750_NguyenVanCuong.md`, `report/team/2A202603739_
 - Viết regression test cho tool mới `hackernews`: happy path, input `story_type` ngoài enum và nhánh timeout/network failure.
 - Dùng `fake_http` và `monkeypatch` để test chạy offline, không gọi API thật và không dùng API key thật.
 - Regression test đã phát hiện hai lỗi trong Hacker News: input `story_type` sai vẫn gọi API; timeout bị raise thay vì trả error dict. Người phụ trách tool đã sửa và test xác nhận lại trên `main`.
+- Viết 3 unit test cho tool `hackernews` bao phủ kết quả bình thường, loại bài viết không hợp lệ và lỗi mạng (dùng mock để không phụ thuộc API thật).
 
 ### Bằng chứng
 
