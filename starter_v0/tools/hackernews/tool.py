@@ -4,46 +4,47 @@ import json
 import urllib.request
 from typing import Any
 
-from tools._shared import err
+from tools._shared import domain, err
 
 BASE = "https://hacker-news.firebaseio.com/v0"
-VALID_STORY_TYPES = {"top", "new", "best"}
+VALID_TYPES = {"top", "new", "best"}
 
 
 def _get(path: str, timeout: int = 10) -> Any:
-    with urllib.request.urlopen(f"{BASE}/{path}.json", timeout=timeout) as r:
-        return json.load(r)
+    with urllib.request.urlopen(f"{BASE}/{path}.json", timeout=timeout) as response:
+        return json.load(response)
 
 
 def get_hn_stories(story_type: str = "top", limit: int = 5) -> dict[str, Any]:
     try:
-        clean_story_type = str(story_type or "top").lower().strip()
-        if clean_story_type not in VALID_STORY_TYPES:
-            clean_story_type = "top"
+        if story_type not in VALID_TYPES:
+            raise ValueError(f"Unsupported story_type: {story_type!r}. Use one of {sorted(VALID_TYPES)}")
 
         try:
-            clean_limit = int(limit)
-        except (ValueError, TypeError):
+            clean_limit = int(limit or 5)
+        except (TypeError, ValueError):
             clean_limit = 5
         clean_limit = max(1, min(clean_limit, 20))
 
-        ids = _get(f"{clean_story_type}stories")[:clean_limit]
+        story_ids = _get(f"{story_type}stories") or []
         items = []
-        for i in ids:
-            s = _get(f"item/{i}")
-            if not isinstance(s, dict):
+        for story_id in story_ids[:clean_limit]:
+            story = _get(f"item/{story_id}") or {}
+            if not isinstance(story, dict):
                 continue
+            url = story.get("url") or f"https://news.ycombinator.com/item?id={story_id}"
             items.append({
-                "title": s.get("title", ""),
-                "url": s.get("url", f"https://news.ycombinator.com/item?id={i}"),
-                "source": "Hacker News",
-                "summary": f"{s.get('score', 0)} điểm, {s.get('descendants', 0)} bình luận",
+                "title": story.get("title", ""),
+                "url": url,
+                "source": domain(url) or "Hacker News",
+                "summary": f"{story.get('score', 0)} điểm, {story.get('descendants', 0)} bình luận",
+                "score": story.get("score"),
             })
         return {
-            "tool": "hackernews",
-            "story_type": clean_story_type,
+            "tool": "get_hn_stories",
+            "story_type": story_type,
             "items": items,
             "item_count": len(items),
         }
     except Exception as exc:
-        return err("hackernews", exc)
+        return err("get_hn_stories", exc)
