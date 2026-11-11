@@ -148,7 +148,7 @@
               "result": {
                 "tool": "send_telegram",
                 "error": "HTTPError",
-                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
               }
             }
           ]
@@ -193,7 +193,7 @@
           "result": {
             "tool": "send_telegram",
             "error": "HTTPError",
-            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
           }
         },
         {
@@ -218,7 +218,7 @@
       "started_at": "2026-11-11T07:18:42",
       "user": "-1004413625764",
       "status": "answered",
-      "assistant_text": "Xin lỗi, việc gửi tin nhắn lên Telegram đã gặp lỗi:\n\n```\nHTTPError: 400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage\n```\n\nThông thường lỗi 400 có thể do:\n\n1. **Chat ID sai** – hãy kiểm tra lại ID kênh (`-1004413625764`) có đúng không.\n2. **Token bot sai** – token trong URL (`9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ`) có thể đã hết hạn hoặc không hợp lệ.\n3. **Quyền gửi tin** – bot có thể chưa được mời vào kênh hoặc chưa được cấp quyền gửi tin.\n\nBạn có muốn thử lại sau khi kiểm tra lại các thông tin trên không? Nếu cần hỗ trợ thêm, cứ cho mình biết!",
+      "assistant_text": "Xin lỗi, việc gửi tin nhắn lên Telegram đã gặp lỗi:\n\n```\nHTTPError: 400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage\n```\n\nThông thường lỗi 400 có thể do:\n\n1. **Chat ID sai** – hãy kiểm tra lại ID kênh (`-1004413625764`) có đúng không.\n2. **Token bot sai** – token trong URL (`<REDACTED_TELEGRAM_TOKEN>`) có thể đã hết hạn hoặc không hợp lệ.\n3. **Quyền gửi tin** – bot có thể chưa được mời vào kênh hoặc chưa được cấp quyền gửi tin.\n\nBạn có muốn thử lại sau khi kiểm tra lại các thông tin trên không? Nếu cần hỗ trợ thêm, cứ cho mình biết!",
       "rounds": [
         {
           "round": 1,
@@ -242,14 +242,14 @@
               "result": {
                 "tool": "send_telegram",
                 "error": "HTTPError",
-                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
               }
             }
           ]
         },
         {
           "round": 2,
-          "assistant_text": "Xin lỗi, việc gửi tin nhắn lên Telegram đã gặp lỗi:\n\n```\nHTTPError: 400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage\n```\n\nThông thường lỗi 400 có thể do:\n\n1. **Chat ID sai** – hãy kiểm tra lại ID kênh (`-1004413625764`) có đúng không.\n2. **Token bot sai** – token trong URL (`9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ`) có thể đã hết hạn hoặc không hợp lệ.\n3. **Quyền gửi tin** – bot có thể chưa được mời vào kênh hoặc chưa được cấp quyền gửi tin.\n\nBạn có muốn thử lại sau khi kiểm tra lại các thông tin trên không? Nếu cần hỗ trợ thêm, cứ cho mình biết!",
+          "assistant_text": "Xin lỗi, việc gửi tin nhắn lên Telegram đã gặp lỗi:\n\n```\nHTTPError: 400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage\n```\n\nThông thường lỗi 400 có thể do:\n\n1. **Chat ID sai** – hãy kiểm tra lại ID kênh (`-1004413625764`) có đúng không.\n2. **Token bot sai** – token trong URL (`<REDACTED_TELEGRAM_TOKEN>`) có thể đã hết hạn hoặc không hợp lệ.\n3. **Quyền gửi tin** – bot có thể chưa được mời vào kênh hoặc chưa được cấp quyền gửi tin.\n\nBạn có muốn thử lại sau khi kiểm tra lại các thông tin trên không? Nếu cần hỗ trợ thêm, cứ cho mình biết!",
           "tool_calls": [],
           "tool_results": []
         }
@@ -264,7 +264,7 @@
           "result": {
             "tool": "send_telegram",
             "error": "HTTPError",
-            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
           }
         }
       ],

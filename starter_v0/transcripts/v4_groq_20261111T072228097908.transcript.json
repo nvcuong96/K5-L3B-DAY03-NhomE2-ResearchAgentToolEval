@@ -148,7 +148,7 @@
               "result": {
                 "tool": "send_telegram",
                 "error": "HTTPError",
-                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+                "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
               }
             }
           ]
@@ -170,7 +170,7 @@
           "result": {
             "tool": "send_telegram",
             "error": "HTTPError",
-            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot9201023942:AAFqQxGuUGg5_9rpAzs9HsvTef_bZ7FTNSQ/sendMessage"
+            "message": "400 Client Error: Bad Request for url: https://api.telegram.org/bot<REDACTED_TELEGRAM_TOKEN>/sendMessage"
           }
         }
       ],
