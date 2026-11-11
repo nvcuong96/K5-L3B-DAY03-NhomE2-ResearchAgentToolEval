@@ -3,10 +3,10 @@
 ## 1. Thông tin thành viên
 
 - **Họ tên:** Đoàn Công Hải
-- **MSSV:** *(Điền MSSV của bạn vào đây)*
-- **Email:** haidoan2426@gmail.com
+- **MSSV:** 2A202603739
+- **Email:** 26ai.haidc@vinuni.edu.vn
 - **Nhóm:** Nhóm E2 — Lớp L3B
-- **Vai trò:** Trưởng nhóm (Team Leader)
+- **Vai trò:** Thành viên (CP4, CP5, UI & Báo cáo)
 
 ## 2. Phần việc phụ trách
 

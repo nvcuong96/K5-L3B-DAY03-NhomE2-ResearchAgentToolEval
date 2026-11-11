@@ -133,12 +133,14 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
 | Tool mới (`tools/hackernews/`) | `starter_v0/tools/hackernews/tool.py`, `TOOL.md` | Lấy tin hot/mới nhất từ Hacker News Firebase API kèm điểm số, comment | Giới hạn `limit` từ 1 đến 20, fallback an toàn khi ngoài phạm vi |
-| Unit test tool mới (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`pytest` 70 passed, 0 failed) | 3 test: happy path, input xấu (sai kiểu/ngoài enum), failure timeout | Tool bắt mọi Exception và trả về dict error `{tool, error, message}`, tuyệt đối không raise |
+| Unit test tool mới & suite Step 4b (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`pytest` 87 passed, 0 failed) | Đầy đủ test cho toàn bộ tool có sẵn và 3+ regression tests cho tool mới: happy path, input xấu (sai kiểu/ngoài enum), failure timeout | Tool bắt mọi Exception và trả về dict error `{tool, error, message}`, tuyệt đối không raise |
 | UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `requirements.txt` | Streamlit chat tương tác trực quan, hiển thị tool calls, tự lưu transcript | Sidebar cấu hình API key, model linh hoạt, bắt lỗi provider |
 
 **Tool unit tests:** 
-- Đã viết 3 unit tests hoàn chỉnh trong `tests/test_tools_todo.py`.
-- **Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được:** Khi model truyền tham số dạng chuỗi không hợp lệ `limit="not_a_number"` hoặc `story_type="invalid_type"`, eval chỉ kiểm tra schema JSON do model sinh ra. Unit test phát hiện việc so sánh trực tiếp `int` và `str` gây ra `TypeError` trong code Python, từ đó nhóm đã bổ sung `try/except` ép kiểu và fallback mặc định an toàn. Ngoài ra, unit test kiểm tra giả lập `TimeoutError` để đảm bảo tool không làm crash agent mà trả về error dict chuẩn.
+- Đã hoàn thành toàn bộ challenge Step 4b (thay 17 stub `pytest.skip` bằng test offline thực tế) và bộ test chuyên sâu cho tool mới `hackernews` trong `tests/test_tools_todo.py`.
+- **Ví dụ lỗi mà unit test bắt được nhưng eval không bắt được:**
+  1. *Lỗi validate `story_type` và timeout:* Bộ regression test của Hiếu phát hiện khi truyền `story_type` sai enum thì tool vẫn gọi API thay vì trả lỗi ngay, và lỗi timeout bị raise Exception làm sập luồng thay vì trả về error dictionary `{tool, error, message}`. Điều này eval routing không thể bắt được vì eval chỉ kiểm tra tên tool gọi ra chứ không gọi code thật của tool. Sau khi phát hiện, tool đã được fix triệt để.
+  2. *Lỗi ép kiểu `limit`:* Khi model truyền chuỗi `limit="not_a_number"`, unit test bắt được lỗi `TypeError` khi so sánh số với chuỗi, giúp nhóm bổ sung kiểm tra ép kiểu và fallback mặc định an toàn. Toàn bộ test suite hiện đạt **87 passed, 0 failed**.
 
 ### B5. Bonus Evidence
 
@@ -160,8 +162,9 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 
 | Thành viên | MSSV | Vai trò chính & Phần việc | Đóng góp chi tiết |
 |---|---|---|---|
-| **Đoàn Công Hải** (Trưởng nhóm) | | CP4 (Eval nhóm), CP5 (UI & Báo cáo), Tool Unit Tests | Thiết kế bộ 10 case `eval_group.json`; viết 3 unit tests cho tool mới; xây dựng giao diện Streamlit `app.py`; tích hợp Telegram bot gửi tin thật; hoàn thiện báo cáo nhóm và cá nhân. |
-| **Nguyễn Văn Cường** | 2A202603750 | CP3 (Tool mới `hackernews`), Phân tích lỗi | Hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`; phân tích failure patterns qua `analysis/base_runs.csv`. |
+| **Nguyễn Văn Cường** (Trưởng nhóm) | 2A202603750 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi | Thiết kế và hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`; phân tích failure patterns qua `analysis/base_runs.csv`; điều phối nhóm. |
+| **Đoàn Công Hải** | 2A202603739 | CP4 (Eval nhóm), CP5 (UI & Báo cáo), Tích hợp Telegram | Thiết kế bộ 10 case `eval_group.json`; xây dựng giao diện Streamlit `app.py`; cấu hình và tích hợp bot Telegram gửi tin nhắn thật; tổng hợp live transcript và hoàn thiện báo cáo nhóm. |
+| **Nguyễn Văn Hiếu** | 2A202603746 | Step 4b (Unit test offline & Regression tests) | Thay toàn bộ 17 stub `pytest.skip` trong `tests/test_tools_todo.py` bằng test offline hoàn chỉnh; viết bộ regression test cho tool `hackernews`, phát hiện 2 lỗi quan trọng về validation và timeout giúp hoàn thiện tool (suite đạt 87 passed). |
 | **Lê Nguyễn Anh Khôi** | | CP1, CP2 (Tối ưu Prompt & Tools) | Thiết lập baseline v0, chạy lặp tối ưu prompt v1-v3; chuẩn hóa `system_prompt.md` và `tools.yaml`; ghi log `version_log.csv`. |
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection

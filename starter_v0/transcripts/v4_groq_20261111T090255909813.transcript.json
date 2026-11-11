@@ -1,0 +1,234 @@
+{
+  "transcript_id": "v4_groq_20261111T090255909813",
+  "version": "v4",
+  "artifact_version": "v4+p52c96d2dc521+t438592cce944",
+  "prompt_hash": "52c96d2dc5218bc7638711b62a903c99cb56d4d01184cffc7ddfa4e1aad50ebe",
+  "tools_hash": "438592cce944f61ffa195f1897611705f14c4a954a204cf210be5c770045ed39",
+  "provider": "groq",
+  "model": "openai/gpt-oss-20b",
+  "created_at": "2026-11-11T09:02:55",
+  "updated_at": "2026-11-11T09:04:18",
+  "turns": [
+    {
+      "turn_index": 1,
+      "started_at": "2026-11-11T09:03:41",
+      "user": "Lấy cho tôi 3 tin tức nổi bật nhất trên HackerNews hôm nay.",
+      "status": "answered",
+      "assistant_text": "**Top 3 Hacker News Stories Today**\n\n- **232 points, 91 comments** – [vulncheck.com](https://www.vulncheck.com/blog/anthropic-glasswing-november-update)  \n- **691 points, 159 comments** – [neil.fraser.name](https://neil.fraser.name/news/2026/11/10/)  \n- **329 points, 249 comments** – [theautopian.com](https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/)",
+      "rounds": [
+        {
+          "round": 1,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "hackernews",
+              "args": {
+                "limit": 3
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "hackernews",
+              "args": {
+                "limit": 3
+              },
+              "result": {
+                "tool": "get_hn_stories",
+                "story_type": "top",
+                "items": [
+                  {
+                    "title": "After 7 months, Glasswing overwelms maintainers with underwhelming findings",
+                    "url": "https://www.vulncheck.com/blog/anthropic-glasswing-november-update",
+                    "source": "vulncheck.com",
+                    "summary": "232 điểm, 91 bình luận",
+                    "score": 232
+                  },
+                  {
+                    "title": ".name Grandfathered",
+                    "url": "https://neil.fraser.name/news/2026/11/10/",
+                    "source": "neil.fraser.name",
+                    "summary": "691 điểm, 159 bình luận",
+                    "score": 691
+                  },
+                  {
+                    "title": "Scion is back and is going to sell a kei truck in America",
+                    "url": "https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/",
+                    "source": "theautopian.com",
+                    "summary": "329 điểm, 249 bình luận",
+                    "score": 329
+                  }
+                ],
+                "item_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "round": 2,
+          "assistant_text": null,
+          "tool_calls": [
+            {
+              "name": "format",
+              "args": {
+                "headline": "Top 3 Hacker News Stories Today",
+                "items": [
+                  {
+                    "score": 232,
+                    "source": "vulncheck.com",
+                    "summary": "232 points, 91 comments",
+                    "title": "After 7 months, Glasswing overwelms maintainers with underwhelming findings",
+                    "url": "https://www.vulncheck.com/blog/anthropic-glasswing-november-update"
+                  },
+                  {
+                    "score": 691,
+                    "source": "neil.fraser.name",
+                    "summary": "691 points, 159 comments",
+                    "title": ".name Grandfathered",
+                    "url": "https://neil.fraser.name/news/2026/11/10/"
+                  },
+                  {
+                    "score": 329,
+                    "source": "theautopian.com",
+                    "summary": "329 points, 249 comments",
+                    "title": "Scion is back and is going to sell a kei truck in America",
+                    "url": "https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/"
+                  }
+                ],
+                "template": "bullets"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "tool": "format",
+              "args": {
+                "headline": "Top 3 Hacker News Stories Today",
+                "items": [
+                  {
+                    "score": 232,
+                    "source": "vulncheck.com",
+                    "summary": "232 points, 91 comments",
+                    "title": "After 7 months, Glasswing overwelms maintainers with underwhelming findings",
+                    "url": "https://www.vulncheck.com/blog/anthropic-glasswing-november-update"
+                  },
+                  {
+                    "score": 691,
+                    "source": "neil.fraser.name",
+                    "summary": "691 points, 159 comments",
+                    "title": ".name Grandfathered",
+                    "url": "https://neil.fraser.name/news/2026/11/10/"
+                  },
+                  {
+                    "score": 329,
+                    "source": "theautopian.com",
+                    "summary": "329 points, 249 comments",
+                    "title": "Scion is back and is going to sell a kei truck in America",
+                    "url": "https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/"
+                  }
+                ],
+                "template": "bullets"
+              },
+              "result": {
+                "tool": "render_digest",
+                "template": "bullets",
+                "markdown": "- 232 points, 91 comments - [vulncheck.com](https://www.vulncheck.com/blog/anthropic-glasswing-november-update)\n- 691 points, 159 comments - [neil.fraser.name](https://neil.fraser.name/news/2026/11/10/)\n- 329 points, 249 comments - [theautopian.com](https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/)",
+                "item_count": 3
+              }
+            }
+          ]
+        },
+        {
+          "round": 3,
+          "assistant_text": "**Top 3 Hacker News Stories Today**\n\n- **232 points, 91 comments** – [vulncheck.com](https://www.vulncheck.com/blog/anthropic-glasswing-november-update)  \n- **691 points, 159 comments** – [neil.fraser.name](https://neil.fraser.name/news/2026/11/10/)  \n- **329 points, 249 comments** – [theautopian.com](https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/)",
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ],
+      "tool_events": [
+        {
+          "tool": "hackernews",
+          "args": {
+            "limit": 3
+          },
+          "result": {
+            "tool": "get_hn_stories",
+            "story_type": "top",
+            "items": [
+              {
+                "title": "After 7 months, Glasswing overwelms maintainers with underwhelming findings",
+                "url": "https://www.vulncheck.com/blog/anthropic-glasswing-november-update",
+                "source": "vulncheck.com",
+                "summary": "232 điểm, 91 bình luận",
+                "score": 232
+              },
+              {
+                "title": ".name Grandfathered",
+                "url": "https://neil.fraser.name/news/2026/11/10/",
+                "source": "neil.fraser.name",
+                "summary": "691 điểm, 159 bình luận",
+                "score": 691
+              },
+              {
+                "title": "Scion is back and is going to sell a kei truck in America",
+                "url": "https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/",
+                "source": "theautopian.com",
+                "summary": "329 điểm, 249 bình luận",
+                "score": 329
+              }
+            ],
+            "item_count": 3
+          }
+        },
+        {
+          "tool": "format",
+          "args": {
+            "headline": "Top 3 Hacker News Stories Today",
+            "items": [
+              {
+                "score": 232,
+                "source": "vulncheck.com",
+                "summary": "232 points, 91 comments",
+                "title": "After 7 months, Glasswing overwelms maintainers with underwhelming findings",
+                "url": "https://www.vulncheck.com/blog/anthropic-glasswing-november-update"
+              },
+              {
+                "score": 691,
+                "source": "neil.fraser.name",
+                "summary": "691 points, 159 comments",
+                "title": ".name Grandfathered",
+                "url": "https://neil.fraser.name/news/2026/11/10/"
+              },
+              {
+                "score": 329,
+                "source": "theautopian.com",
+                "summary": "329 points, 249 comments",
+                "title": "Scion is back and is going to sell a kei truck in America",
+                "url": "https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/"
+              }
+            ],
+            "template": "bullets"
+          },
+          "result": {
+            "tool": "render_digest",
+            "template": "bullets",
+            "markdown": "- 232 points, 91 comments - [vulncheck.com](https://www.vulncheck.com/blog/anthropic-glasswing-november-update)\n- 691 points, 159 comments - [neil.fraser.name](https://neil.fraser.name/news/2026/11/10/)\n- 329 points, 249 comments - [theautopian.com](https://www.theautopian.com/scion-is-back-and-its-going-to-sell-a-freaking-kei-truck-in-america/)",
+            "item_count": 3
+          }
+        }
+      ],
+      "ended_at": "2026-11-11T09:03:52"
+    },
+    {
+      "turn_index": 2,
+      "started_at": "2026-11-11T09:04:11",
+      "user": "Tìm cho tôi các bài báo khoa học mới nhất về chủ đề Tool Calling LLM Agents trên arXiv.",
+      "status": "provider_error",
+      "assistant_text": null,
+      "rounds": [],
+      "tool_events": [],
+      "error": "RateLimitError: Error code: 429 - Rate limit reached for model `openai/gpt-oss-20b` in organization `org_01m6tbc344empap1jj0539nm7d` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199166, Requested 2640. Please try again in 13m0.192s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing",
+      "ended_at": "2026-11-11T09:04:18"
+    }
+  ]
+}
