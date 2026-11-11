@@ -25,7 +25,7 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
             json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
             timeout=TIMEOUT,
         )
-        if not response.ok:
+        if response.status_code >= 400:
             # Fallback to plain text if Markdown entity formatting causes 400
             fallback_response = requests.post(
                 f"https://api.telegram.org/bot{token}/sendMessage",
@@ -38,4 +38,3 @@ def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
         return {"tool": "send_telegram", "status": "sent"}
     except Exception as exc:
         return err("send_telegram", exc)
-
