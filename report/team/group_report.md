@@ -70,8 +70,9 @@ Dependency đã thêm vào `starter_v0/requirements.txt`: `streamlit>=1.30.0`
 - **v4**: Đăng ký tool mới `hackernews` với mô tả rõ ràng: gọi khi người dùng nhắc tới Hacker News/HN; không nhầm lẫn với `lookup` hay `timeline`.
 
 ### 3.3. Tool mới tự phát triển: `hackernews` (`tools/hackernews/`)
-- **Chức năng**: Tích hợp trực tiếp với Firebase API chính thức của Hacker News (`https://hacker-news.firebaseio.com/v0/`) để lấy danh sách bài viết nổi bật (`top`), mới nhất (`new`), hoặc hay nhất (`best`) kèm điểm số (`score`), số lượng bình luận (`descendants`) và liên kết gốc.
-- **Khi nào gọi**: Agent gọi khi người dùng hỏi tin tức trên Hacker News / HN. Tool có sẵn cơ chế bắt lỗi timeout, fallback enum và chuẩn hóa kiểu dữ liệu.
+- **Người phụ trách chính**: Nguyễn Văn Cường (Trưởng nhóm).
+- **Chức năng**: Tích hợp trực tiếp với Firebase API chính thức của Hacker News (`https://hacker-news.firebaseio.com/v0/`) để lấy danh sách bài viết nổi bật (`top`), mới nhất (`new`), hoặc hay nhất (`best`) kèm điểm số (`score`), số lượng bình luận (`descendants`) và liên kết gốc. Bổ sung URL dự phòng trỏ về trang thảo luận Hacker News nếu bài viết không có link riêng (`https://news.ycombinator.com/item?id=...`).
+- **Khi nào gọi**: Agent gọi khi người dùng hỏi tin tức trên Hacker News / HN. Tool có sẵn cơ chế bắt lỗi timeout, fallback enum và chuẩn hóa kiểu dữ liệu trả về theo format dùng chung của hệ thống.
 
 ## 4. Kết quả — PHẦN B: Chi tiết và bằng chứng
 
@@ -132,7 +133,7 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 
 | Item | Evidence File | What Worked | Risk / Guardrail |
 |---|---|---|---|
-| Tool mới (`tools/hackernews/`) | `starter_v0/tools/hackernews/tool.py`, `TOOL.md` | Lấy tin hot/mới nhất từ Hacker News Firebase API kèm điểm số, comment | Giới hạn `limit` từ 1 đến 20, fallback an toàn khi ngoài phạm vi |
+| Tool mới (`tools/hackernews/`) | `starter_v0/tools/hackernews/tool.py`, `TOOL.md` (Commits `c12890d`, `01c232a` - Nguyễn Văn Cường) | Lấy tin hot/mới nhất từ Hacker News Firebase API kèm điểm số, comment | Giới hạn `limit` từ 1 đến 20, fallback an toàn khi ngoài phạm vi |
 | Unit test tool mới & suite Step 4b (≥ 3 test/tool) | `starter_v0/tests/test_tools_todo.py` (`pytest` 87 passed, 0 failed) | Đầy đủ test cho toàn bộ tool có sẵn và 3+ regression tests cho tool mới: happy path, input xấu (sai kiểu/ngoài enum), failure timeout | Tool bắt mọi Exception và trả về dict error `{tool, error, message}`, tuyệt đối không raise |
 | UI (lệnh chạy + link dùng thử) | `starter_v0/app.py`, `requirements.txt` | Streamlit chat tương tác trực quan, hiển thị tool calls, tự lưu transcript | Sidebar cấu hình API key, model linh hoạt, bắt lỗi provider |
 
@@ -162,7 +163,7 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 
 | Thành viên | MSSV | Vai trò chính & Phần việc | Đóng góp chi tiết |
 |---|---|---|---|
-| **Nguyễn Văn Cường** (Trưởng nhóm) | 2A202603750 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi | Thiết kế và hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`; phân tích failure patterns qua `analysis/base_runs.csv`; điều phối nhóm. |
+| **Nguyễn Văn Cường** (Trưởng nhóm) | 2A202603750 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi | Thiết kế và hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`, đăng ký schema trong `tools.yaml`; phân tích failure patterns qua `analysis/base_runs.csv`; viết 3 unit test cho `hackernews` (commits `c12890d`, `01c232a`); điều phối nhóm. Báo cáo: [2A202603750_NguyenVanCuong.md](2A202603750_NguyenVanCuong.md). |
 | **Đoàn Công Hải** | 2A202603739 | CP4 (Eval nhóm), CP5 (UI & Báo cáo), Tích hợp Telegram | Thiết kế bộ 10 case `eval_group.json`; xây dựng giao diện Streamlit `app.py`; cấu hình và tích hợp bot Telegram gửi tin nhắn thật; tổng hợp live transcript và hoàn thiện báo cáo nhóm. |
 | **Nguyễn Văn Hiếu** | 2A202603746 | Step 4b (Unit test offline & Regression tests) | Thay toàn bộ 17 stub `pytest.skip` trong `tests/test_tools_todo.py` bằng test offline hoàn chỉnh; viết bộ regression test cho tool `hackernews`, phát hiện 2 lỗi quan trọng về validation và timeout giúp hoàn thiện tool (suite đạt 87 passed). |
 | **Lê Nguyễn Anh Khôi** | | CP1, CP2 (Tối ưu Prompt & Tools) | Thiết lập baseline v0, chạy lặp tối ưu prompt v1-v3; chuẩn hóa `system_prompt.md` và `tools.yaml`; ghi log `version_log.csv`. |
