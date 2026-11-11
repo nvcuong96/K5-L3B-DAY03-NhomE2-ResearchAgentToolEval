@@ -19,7 +19,7 @@
 
 ## 4. Bằng chứng
 
-- File chính: [tool.py](../starter_v0/tools/hackernews/tool.py), [TOOL.md](../starter_v0/tools/hackernews/TOOL.md), [tools.yaml](../starter_v0/artifacts/tools.yaml), [__init__.py](../starter_v0/tools/__init__.py).
+- File chính: [tool.py](../../starter_v0/tools/hackernews/tool.py), [TOOL.md](../../starter_v0/tools/hackernews/TOOL.md), [tools.yaml](../../starter_v0/artifacts/tools.yaml), [__init__.py](../../starter_v0/tools/__init__.py).
 - Commit: `c12890d` (thêm tool và tích hợp); `01c232a` (hoàn thiện xử lý phản hồi và lỗi).
 - AI/công cụ: dùng trợ lý lập trình để hỗ trợ lập trình tool, xác nhận AI đã làm theo đúng chuẩn cấu trúc file tool và hàm chưa;
 
