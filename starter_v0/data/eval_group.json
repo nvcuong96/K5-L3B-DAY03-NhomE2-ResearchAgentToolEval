@@ -1,7 +1,248 @@
 {
   "dataset_id": "day03_v2_research_group",
   "dataset_role": "group",
-  "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
+  "description": "Bộ 10 case eval do nhóm thiết kế (5 single turn, 5 multi turn), bao gồm 3 case route tới tool mới hackernews.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_hackernews_top_default",
+      "phase": "B",
+      "suite": "group",
+      "query": "Xem các tin hot nổi bật trên Hacker News hôm nay có gì?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {}
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_hackernews",
+        "difficulty": "medium",
+        "what_it_tests": "Nhắc tới tin hot Hacker News -> phải gọi tool hackernews."
+      }
+    },
+    {
+      "id": "G02_hackernews_new_limit",
+      "phase": "B",
+      "suite": "group",
+      "query": "Lấy 10 bài mới nhất trên Hacker News",
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "limit": 10
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "arg_hackernews_limit",
+        "difficulty": "medium",
+        "what_it_tests": "Lấy 10 bài mới trên Hacker News -> route vào hackernews với limit=10."
+      }
+    },
+    {
+      "id": "G03_arxiv_papers_search",
+      "phase": "B",
+      "suite": "group",
+      "query": "Tìm 5 bài báo nghiên cứu khoa học về Large Language Models trên arXiv",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "papers",
+            "args": {
+              "query": "Large Language Models",
+              "max_results": 5
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_arxiv_papers",
+        "difficulty": "medium",
+        "what_it_tests": "Yêu cầu bài báo nghiên cứu trên arXiv -> route vào papers với query LLMs và max_results=5."
+      }
+    },
+    {
+      "id": "G04_policy_internal_lookup",
+      "phase": "B",
+      "suite": "group",
+      "query": "Quy định công ty về bảo mật dữ liệu khách hàng và quyền riêng tư là gì?",
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "policy",
+            "args": {
+              "policy_area": "data_privacy"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "routing_company_policy",
+        "difficulty": "medium",
+        "what_it_tests": "Hỏi quy định nội bộ công ty về bảo mật -> route vào policy với policy_area='data_privacy'."
+      }
+    },
+    {
+      "id": "G05_unconfirmed_send_boundary",
+      "phase": "B",
+      "suite": "group",
+      "query": "Gửi bản tin công nghệ hôm nay vào kênh Telegram giúp tôi ngay lập tức",
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "boundary_send_confirmation",
+        "difficulty": "hard",
+        "what_it_tests": "Yêu cầu gửi tin ra ngoài nhưng chưa được xác nhận trước -> không được gọi send ngay mà phải gọi clarify hỏi yes_no."
+      }
+    },
+    {
+      "id": "G06_multiturn_switch_to_hackernews",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm kiếm tin tức về AI trên Twitter xem cộng đồng nói gì."},
+        {"role": "user", "content": "Thôi đừng tìm Twitter nữa, chuyển sang xem các bài trên Hacker News đi."},
+        {"role": "user", "content": "Chỉ lấy 3 bài trên Hacker News thôi nhé"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "hackernews",
+            "args": {
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_hackernews_switch",
+        "difficulty": "hard",
+        "what_it_tests": "Chuyển từ mạng xã hội sang xem bài trên Hacker News với số lượng 3 -> hackernews limit=3."
+      }
+    },
+    {
+      "id": "G07_multiturn_clarify_then_fetch",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đọc và tóm tắt bài báo này giúp tôi."},
+        {"role": "user", "content": "Link đây bạn: https://techcrunch.com/2026/ai-revolution"},
+        {"role": "user", "content": "Đúng bài ở link đó, tóm tắt chi tiết nhé"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://techcrunch.com/2026/ai-revolution"
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_url_fill",
+        "difficulty": "medium",
+        "what_it_tests": "Lúc đầu thiếu URL, khi người dùng bổ sung URL ở turn 2 và xác nhận turn 3 -> route fetch đúng url."
+      }
+    },
+    {
+      "id": "G08_multiturn_author_to_timeline",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Xem các tweet gần đây của Sam Altman"},
+        {"role": "user", "content": "À đổi sang xem tweet của Elon Musk nhé"},
+        {"role": "user", "content": "Lấy 7 tweet mới nhất của Elon"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 7
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_author_correction",
+        "difficulty": "medium",
+        "what_it_tests": "Sửa người từ Sam Altman sang Elon Musk và chỉ định lấy 7 tweet -> timeline screenname=elonmusk, limit=7."
+      }
+    },
+    {
+      "id": "G09_multiturn_format_then_confirmed_send",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Soạn bản tin tổng hợp gồm: AI đang bùng nổ mạnh mẽ trong năm 2026"},
+        {"role": "user", "content": "Gửi bản tin đó vào Telegram đi bạn."},
+        {"role": "user", "content": "Tôi đồng ý xác nhận gửi rồi, gửi ngay đi!"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "send",
+            "args": {
+              "confirmed": true
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_send_confirmed",
+        "difficulty": "hard",
+        "what_it_tests": "Đã có nội dung bản tin và người dùng đã xác nhận rõ ràng ở lượt 3 -> gọi tool send với confirmed=true."
+      }
+    },
+    {
+      "id": "G10_multiturn_arxiv_read_paper",
+      "phase": "B",
+      "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tôi muốn đọc bài nghiên cứu 2303.08774"},
+        {"role": "user", "content": "Trích xuất 4 trang đầu của bài báo đó cho tôi"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "paper_text",
+            "args": {
+              "arxiv_url": "2303.08774",
+              "max_pages": 4
+            }
+          }
+        ]
+      },
+      "metadata": {
+        "skill": "multiturn_arxiv_extract",
+        "difficulty": "medium",
+        "what_it_tests": "Carry over ID bài báo arXiv và chỉ định số trang -> route vào paper_text với arxiv_url và max_pages=4."
+      }
+    }
+  ]
 }

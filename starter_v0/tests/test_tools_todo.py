@@ -188,10 +188,61 @@ def test_policy_instruction_like_lines_go_to_untrusted_text() -> None:
 #   2. bad / missing input from the model (empty string, wrong type, out-of-enum value)
 #   3. failure path (missing key, HTTP error, timeout) -> returns error dict, does not raise
 
-def test_hackernews_maps_stories_and_uses_fallback_url(monkeypatch) -> None:
+def test_hackernews_returns_stories_from_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_get(path: str, timeout: int = 10):
+        if path == "topstories":
+            return [101, 102]
+        if path == "item/101":
+            return {"title": "AI Breakthrough", "url": "https://example.com/ai", "score": 150, "descendants": 42}
+        if path == "item/102":
+            return {"title": "New Python Version", "url": "https://example.com/py", "score": 80, "descendants": 10}
+        return {}
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_get)
+    result = get_hn_stories(story_type="top", limit=2)
+    assert result.get("tool") == "get_hn_stories"
+    assert result.get("item_count") == 2
+    assert len(result.get("items", [])) == 2
+    assert result["items"][0]["title"] == "AI Breakthrough"
+    assert "150 điểm" in result["items"][0]["summary"]
+
+
+def test_hackernews_invalid_limit_uses_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_get(path: str, timeout: int = 10):
+        if path == "topstories":
+            return [101]
+        if path == "item/101":
+            return {"title": "Test Title", "score": 1, "descendants": 0}
+        return {}
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_get)
+    result = get_hn_stories(story_type="top", limit="not_a_number")  # type: ignore[arg-type]
+    assert result.get("tool") == "get_hn_stories"
+    assert result.get("story_type") == "top"
+    assert len(result.get("items", [])) == 1
+
+
+def test_hackernews_api_failure_returns_error_dict(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools.hackernews.tool import get_hn_stories
+
+    def mock_fail(path: str, timeout: int = 10):
+        raise TimeoutError("Connection to Hacker News timed out")
+
+    monkeypatch.setattr("tools.hackernews.tool._get", mock_fail)
+    result = get_hn_stories(story_type="top", limit=5)
+    assert "error" in result
+    assert result["error"] == "TimeoutError"
+    assert "Connection to Hacker News timed out" in result["message"]
+
+
+def test_hackernews_maps_stories_and_uses_fallback_url(monkeypatch: pytest.MonkeyPatch) -> None:
     requested: list[str] = []
 
-    def fake_get(path: str):
+    def fake_get(path: str, timeout: int = 10):
         requested.append(path)
         if path == "topstories":
             return [101, 102]
@@ -209,8 +260,8 @@ def test_hackernews_maps_stories_and_uses_fallback_url(monkeypatch) -> None:
     assert result["items"][1]["url"] == "https://news.ycombinator.com/item?id=102"
 
 
-def test_hackernews_invalid_story_type_returns_error_without_network(monkeypatch) -> None:
-    def fail_if_called(path: str):
+def test_hackernews_invalid_story_type_returns_error_without_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_if_called(path: str, timeout: int = 10):
         raise AssertionError(f"Unexpected network request: {path}")
 
     monkeypatch.setattr(hackernews_tool, "_get", fail_if_called)
@@ -220,8 +271,8 @@ def test_hackernews_invalid_story_type_returns_error_without_network(monkeypatch
     assert "Unsupported story_type" in result["message"]
 
 
-def test_hackernews_network_failure_returns_error_dict(monkeypatch) -> None:
-    def timed_out(path: str):
+def test_hackernews_network_failure_returns_error_dict(monkeypatch: pytest.MonkeyPatch) -> None:
+    def timed_out(path: str, timeout: int = 10):
         raise TimeoutError("Hacker News timed out")
 
     monkeypatch.setattr(hackernews_tool, "_get", timed_out)
