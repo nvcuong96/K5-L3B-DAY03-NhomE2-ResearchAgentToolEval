@@ -61,13 +61,24 @@ Dependency đã thêm vào `starter_v0/requirements.txt`: `streamlit>=1.30.0`
 
 ## 3. Giải pháp
 
-### 3.1. Tối ưu System Prompt (`artifacts/system_prompt.md`)
-- **v1**: Bổ sung quy tắc định tuyến cơ bản (routing rules), phân tách rõ nhiệm vụ tra cứu tin tức thời sự chung (`lookup`) và đọc bài viết theo URL (`fetch`), tránh việc agent tự suy diễn hoặc gọi tool sai.
-- **v3**: Thiết lập ranh giới an toàn nghiêm ngặt (confirmation boundary): Khi người dùng yêu cầu gửi tin ra ngoài (`send`), agent tuyệt đối không được gọi `send` trực tiếp mà bắt buộc phải gọi `clarify` với `response_type="yes_no"` để người dùng xác nhận rõ ràng.
+### 3.1. Phân tích nguyên nhân gốc rễ (Root Cause Analysis ở v0)
+1. **Lỗi trong System Prompt gốc (`system_promptV0.md`):** Chứa nhiều chỉ thị phản khuôn mẫu (anti-patterns) như *"just make a sensible guess"*, *"pick a well-known account like Sam Altman"*, *"just go ahead and do it"*. Điều này khiến mô hình liên tục hallucinate khi thiếu thông tin đầu vào (R10, R11) và tự tiện kích hoạt tool gửi tin nguy hiểm (R12, R14).
+2. **Lỗi trong Tool Definitions gốc (`toolsV0.yaml`):** Các mô tả tool quá ngắn gọn (1 dòng), không nêu rõ điều kiện biên: khi nào nên dùng, khi nào cấm dùng (`DÙNG KHI` / `KHÔNG DÙNG KHI`), không định nghĩa rõ cách ánh xạ định danh và kiểu dữ liệu trả lời của `clarify`.
 
-### 3.2. Cải tiến Tool Declarations (`artifacts/tools.yaml`)
-- **v2**: Chuẩn hóa schema tham số, thêm enum chặt chẽ cho `search_type` (`Latest`, `Top`), `timeframe` (`day`, `week`, `month`, `year`), `topic` (`general`, `news`). Bổ sung hướng dẫn mapping tự động các tên nhân vật nổi tiếng sang Twitter handle (ví dụ: Sam Altman -> `sama`, Elon Musk -> `elonmusk`).
-- **v4**: Đăng ký tool mới `hackernews` với mô tả rõ ràng: gọi khi người dùng nhắc tới Hacker News/HN; không nhầm lẫn với `lookup` hay `timeline`.
+### 3.2. Quá trình tối ưu hóa
+- **v1 (Sửa `artifacts/system_prompt.md`):** Xóa bỏ hoàn toàn lệnh đoán mò; thiết lập **4 Kỷ luật vận hành cốt lõi (Critical Operational Rules)**:
+  - *Rule 1 (Missing Information):* Thiếu dữ liệu mục tiêu bắt buộc gọi `clarify` với `response_type: "text"`, cấm đoán mò.
+  - *Rule 2 (Confirmation Boundary):* Mọi hành động gửi/đăng tải ra ngoài phải xin xác nhận qua `clarify` với `response_type: "yes_no"`.
+  - *Rule 3 (Multi-Tool):* Đồng thời gọi nhiều công cụ khi yêu cầu nhiều nguồn dữ liệu.
+  - *Rule 4 (Out-of-Scope):* Từ chối gọi tool cho câu hỏi toán học, lập trình thuần túy hoặc câu hỏi meta.
+- **v2 (Sửa `artifacts/tools.yaml`):** Khắc phục regression xuất hiện ở v1 (R01 bị hỏi clarify vô cớ vì Rule 1 quá cứng):
+  - Bổ sung cấu trúc `DÙNG KHI` và `KHÔNG DÙNG KHI` cho toàn bộ 10 công cụ.
+  - Tích hợp nguyên tắc ánh xạ tự động tên người nổi tiếng sang handle (ví dụ: Sam Altman $\rightarrow$ `sama`) trực tiếp vào mô tả `timeline`, đồng thời bổ sung ngoại lệ cấm gọi `clarify` nếu đã có tên định danh suy luận được.
+  - Siết chặt mô tả ranh giới của tool `send` và chuẩn hóa mô tả các trường enum (`Latest`/`Top`, `day`/`week`).
+- **v3 (Sửa `artifacts/system_prompt.md`):** Giải quyết dứt điểm xung đột ranh giới tại R12 và lỗi trích xuất tham số tại R03:
+  - Nâng **Confirmation Boundary lên độ ưu tiên cao nhất (Highest Priority)**: Khi người dùng yêu cầu đăng tin, bất kể có thiếu nội dung hay không, bắt buộc hỏi `yes_no` trước tiên, cấm hỏi `text`.
+  - Thêm quy tắc **Argument Extraction & Hygiene**: Chuẩn hóa tham số tìm kiếm, cấm nhồi nhét từ chỉ thời gian ("hôm nay", "tuần này") hoặc từ chỉ thể loại ("tin tức", "news") vào trường `query` của tool `lookup`.
+- **v4 (Sửa `artifacts/tools.yaml`):** Đăng ký tool mới `hackernews` với mô tả rõ ràng: gọi khi người dùng nhắc tới Hacker News/HN; không nhầm lẫn với `lookup` hay `timeline`.
 
 ### 3.3. Tool mới tự phát triển: `hackernews` (`tools/hackernews/`)
 - **Người phụ trách chính**: Nguyễn Văn Cường (Trưởng nhóm).
@@ -82,23 +93,35 @@ Lấy từ `starter_v0/artifacts/version_log.csv` và `starter_v0/runs/*.json`. 
 
 | Version | Changed Artifact | Hypothesis | Metric Before | Metric After | Run File |
 |---|---|---|---:|---:|---|
-| v0 | baseline | Đánh giá baseline ban đầu chưa tối ưu prompt & tools.yaml | 0.00 | 0.50 | `runs/v0_B_base_groq_20261110T183250185623.json` |
-| v1 | system_prompt.md | Thêm rule routing trong system prompt giúp giảm lỗi `wrong_tool` và thiếu thông tin | 0.50 | 0.75 | `runs/v1_B_base_groq_20261110T191431050855.json` |
-| v2 | tools.yaml | Chuẩn hóa schema, mô tả tham số và mapping handle giúp khắc phục `wrong_arg_value` | 0.75 | 0.84 | `runs/v2_B_base_groq_20261110T192238230794.json` |
-| v3 | system_prompt.md | Thiết lập ranh giới xác nhận yes/no trước khi `send`, làm rõ tool boundaries | 0.84 | 0.95 | `runs/v3_B_base_groq_20261110T193156877236.json` |
-| v4 | tools.yaml & code | Đánh giá bộ test case nhóm với tool mới `hackernews`, đạt routing tuyệt đối | 0.95 | 0.80 | `runs/v4_B_group_groq_20261111T075843555174.json` |
+| **v0** | Baseline | Thiết lập điểm chuẩn baseline ban đầu trên tập `eval_base`. Prompt gốc chứa anti-pattern đoán mò sẽ gây ảo giác URL/handle và vi phạm ranh giới gửi tin. | N/A | **0.6316** | `runs/v0_B_base_groq_20261111T072931159418.json` |
+| **v1** | `artifacts/system_prompt.md` | Bổ sung 4 quy tắc vận hành nghiêm ngặt (hỏi clarify khi thiếu input, xác nhận yes/no trước khi gửi, cấm gọi tool cho coding/math), agent sẽ dừng hallucination và tăng case accuracy lên $\ge 0.70$. | 0.6316 | **0.75** | `runs/v1_B_base_groq_20261111T073608906435.json` |
+| **v2** | `artifacts/tools.yaml` | Tái cấu trúc mô tả `tools.yaml` theo cú pháp 'DÙNG KHI/KHÔNG DÙNG KHI' và tích hợp tri thức ánh xạ handle người nổi tiếng vào tool `timeline`, sẽ khắc phục regression R01 và đưa case accuracy lên $\ge 0.80$. | 0.75 | **0.85** | `runs/v2_B_base_groq_20261111T074338943173.json` |
+| **v3** | `artifacts/system_prompt.md` | Đưa Confirmation Boundary lên Highest Priority (ép buộc `yes_no` trước kể cả khi thiếu body text) và bổ sung quy chuẩn Argument Hygiene (lọc sạch từ khóa thời gian/thể loại khỏi query), agent sẽ giải quyết dứt điểm R12, R03 và đạt accuracy $\ge 0.90$. | 0.85 | **0.95** | `runs/v3_B_base_groq_20261111T075054533765.json` |
+| v4 | tools.yaml & code | Đánh giá bộ test case nhóm với tool mới `hackernews`, đạt routing tuyệt đối | N/A | **0.80** | `runs/v4_B_group_groq_20261111T075843555174.json` |
 
+
+*Ghi chú số liệu đo lường:*
+- v0: $12/19$ pass ($63.16\%$), 1 case lỗi nhà cung cấp API (R13 gặp HTTP 400 Bad Request).
+- v1: $15/20$ pass ($75.00\%$), 0 provider error, giải quyết R10, R11, R14, M05, M06 nhưng phát sinh regression tại R01.
+- v2: $17/20$ pass ($85.00\%$), 0 provider error, multiturn đạt $100\%$ ($6/6$), giải quyết hoàn toàn regression R01 và M02.
+- v3: $19/20$ pass ($95.00\%$), 0 provider error, giải quyết hoàn toàn R03 và R12.
 ### B2. Failure Analysis
 
-Lấy từ `results[*].result.failures` trong run v0 `runs/v0_B_base_groq_20261110T183250185623.json`.
+Lấy từ `results[*].result.failures` trong run JSON.
 
 | Case ID | Failure Type | Actual Tool Calls | What Failed | Fix |
 |---|---|---|---|---|
-| `R01_user_tweets_routing` | wrong_arg_value | `timeline` | Model lấy handle `samaltman` thay vì `sama` | Thêm ví dụ mapping cụ thể `Sam Altman -> sama` trong description của `timeline` |
-| `R10_missing_handle` | missing_info | `timeline` | Thiếu handle nhưng model tự bịa và gọi `timeline` | Bổ sung quy tắc trong prompt: thiếu handle bắt buộc gọi `clarify` |
-| `R11_missing_url` | missing_info | `fetch` | Thiếu link nhưng model tự gọi `fetch` | Thêm rule: thiếu URL cụ thể phải dừng lại hỏi người dùng bằng `clarify` |
-| `R12_confirm_before_send` | wrong_boundary | `send` | Chưa có xác nhận nhưng model tự ý gọi tool `send` | Thiết lập boundary bắt buộc gọi `clarify` với `response_type="yes_no"` |
-| `R14_out_of_scope_coding` | out_of_scope | `send` | Yêu cầu viết code ngoài phạm vi nhưng agent gọi nhầm `send` | Thêm chỉ dẫn từ chối lịch sự, không gọi tool khi gặp câu hỏi ngoài phạm vi |
+| **R01** *(v1)* | `wrong_tool` | `clarify(question="Could you confirm Sam Altman's Twitter handle?", response_type="text")` | **Regression:** Agent bắt bẻ hỏi lại handle của Sam Altman thay vì tự quy đổi thành `sama` do Rule 1 ở prompt v1 quá cứng nhắc. | Cập nhật `tools.yaml` (v2): Thêm hướng dẫn tự quy đổi tên người nổi tiếng vào tool `timeline` và loại trừ trong `clarify`. |
+| **R03** *(v0, v1, v2)* | `wrong_arg_value` | `lookup(query="AI news today", timeframe="day", topic="news")` | Tham số `query` bị thừa từ `"news today"` trong khi đã được khai báo ở `topic="news"` và `timeframe="day"`. | Cập nhật `system_prompt.md` (v3): Bổ sung quy tắc Argument Hygiene, cấm đưa từ chỉ thời gian/thể loại vào `query`. |
+| **R10** *(v0)* | `missing_info` | `timeline(limit=5, screenname="sama")` | Người dùng không nói rõ của ai nhưng agent tự ý đoán mò tài khoản Sam Altman (`sama`). | Cập nhật `system_prompt.md` (v1): Bắt buộc gọi `clarify(response_type="text")` khi thiếu đối tượng. |
+| **R11** *(v0)* | `missing_info` | `fetch(url="https://www.bbc.com/news/technology-66812345")` | Yêu cầu tóm tắt nhưng không có link, agent tự bịa ra link BBC để đọc. | Cập nhật `system_prompt.md` (v1): Cấm đoán mò URL, bắt buộc gọi `clarify` xin đường link bài viết. |
+| **R12** *(v0)* | `wrong_boundary` | `lookup(query="AI news", timeframe="week", topic="news")` | Yêu cầu đăng tin Telegram nhưng agent lại tự ý đi search tin tức thay vì xin xác nhận gửi. | Cập nhật `system_prompt.md` (v1): Bắt buộc xin xác nhận trước khi thực hiện hành động ghi/gửi. |
+| **R12** *(v1, v2)* | `wrong_boundary` | `clarify(question="Bạn có thể cung cấp nội dung bản tin...", response_type="text")` | Xung đột ranh giới: Agent thấy chưa có nội dung nên ưu tiên hỏi `text` thay vì hỏi xác nhận `yes_no`. | Cập nhật `system_prompt.md` (v3): Thiết lập Confirmation Boundary là Highest Priority, luôn ép kiểu `yes_no` trước. |
+| **R13** *(v0)* | `provider_error` | *(Không gọi được tool nào)* | Lỗi `BadRequestError: 400 - Tool choice is required, but model did not call a tool` do Groq API xử lý parallel thất bại. | Cập nhật System Prompt (v1, v2, v3) yêu cầu gọi song song độc lập. |
+| **R13** *(v1, v2, v3)* | `wrong_tool` | `lookup(query="AI", timeframe="day", topic="news")` | Agent chỉ gọi tool `lookup` mà bỏ quên tool `social_search` khi người dùng yêu cầu cả web và tweet. | Giới hạn cố hữu của model nhỏ trên Groq khi sinh multi-tool trong 1 turn; cần few-shot ví dụ parallel tool calls. |
+| **R14** *(v0)* | `out_of_scope` | `send(text="def fibonacci(n)...")` | Câu hỏi yêu cầu viết code Fibonacci nhưng agent lại tự tiện kích hoạt tool `send` gửi mã nguồn lên Telegram. | Cập nhật `system_prompt.md` (v1): Thiết lập quy tắc Out-of-Scope, trả lời trực tiếp bằng text, cấm gọi tool. |
+| **M05** *(v0)* | `wrong_arg_value` | `timeline(limit=10, screenname="elonmusk")` | Sau 3 turns, agent không cập nhật `limit=3` theo yêu cầu sửa đổi của người dùng mà giữ nguyên `limit=10`. | Cập nhật `system_prompt.md` (v1): Tối ưu ngữ cảnh multiturn và ghi đè tham số. |
+| **M06** *(v0)* | `wrong_tool` | `lookup(query="OpenAI news", timeframe="week", topic="news")` | Chuyển từ Twitter sang Web News bị dính từ khóa thừa `OpenAI news` thay vì `OpenAI`. | Cập nhật `system_prompt.md` (v1) và `tools.yaml` (v2) chuẩn hóa topic search. |
 
 ### B3. Team Eval Cases
 
@@ -159,6 +182,18 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
    - *Vấn đề:* Khi thử nghiệm tool `send`, Telegram API trả về mã lỗi 400 do sai chat ID của nhóm và do parser Markdown của Telegram bị xung đột với các ký tự `_` trong URL / tên tool.
    - *Cách xử lý:* Dùng Telegram `getUpdates` API để lấy ID chính xác của nhóm supergroup (`-1004487409127`). Đồng thời sửa hàm `send_telegram` trong `tools/send/tool.py`: nếu Telegram từ chối định dạng Markdown, hệ thống tự động gửi lại dưới dạng plain text an toàn, đảm bảo tin nhắn luôn đến được Telegram.
 
+3. **Sự cố Provider Error ở v0 (Case R13):**
+   - *Vấn đề:* Groq API trả về mã lỗi HTTP 400 (`Tool choice is required, but model did not call a tool`) khi prompt không có cấu trúc hướng dẫn gọi nhiều tool.
+   - *Cách xử lý:* Định hình lại schema tường minh và bổ sung nguyên tắc Multi-Tool calling trong prompt v1.
+
+4. **Xung đột ranh giới (Conflict of Boundaries ở v1 và v2):**
+   - *Vấn đề:* Tại case R12, agent đối mặt với 2 luật cạnh tranh: *"thiếu thông tin phải hỏi text"* và *"gửi tin phải hỏi yes_no"*. Mô hình chọn hỏi xin nội dung trước (`response_type="text"`), dẫn đến fail eval.
+   - *Cách xử lý:* Tại prompt v3, nhóm thiết lập nguyên tắc phân cấp cưỡng chế: Confirmation Boundary là Highest Priority, bắt buộc xin phép `yes_no` trước mọi điều kiện khác.
+
+5. **Hiện tượng suy giảm khả năng (Regression ở v1):**
+   - *Vấn đề:* Khi đưa Rule 1 vào prompt v1 để chặn đoán mò URL/handle, agent lại trở nên "quá máy móc" và từ chối tự map tên Sam Altman sang `sama` (case R01).
+   - *Cách xử lý:* Đưa tri thức ánh xạ trực tiếp vào mô tả tool `timeline` trong `tools.yaml` (v2) thay vì nhồi nhét vào prompt, giúp agent tự tin map handle mà không bị ảo giác.
+
 ## 6. Tổng hợp đóng góp
 
 | Thành viên | MSSV | Vai trò chính & Phần việc | Đóng góp chi tiết |
@@ -166,18 +201,27 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 | **Nguyễn Văn Cường** (Trưởng nhóm) | 2A202603750 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi | Thiết kế và hiện thực tool `tools/hackernews/tool.py`, viết tài liệu `TOOL.md`, đăng ký schema trong `tools.yaml`; phân tích failure patterns qua `analysis/base_runs.csv`; viết 3 unit test cho `hackernews` (commits `c12890d`, `01c232a`); điều phối nhóm. Báo cáo: [2A202603750_NguyenVanCuong.md](2A202603750_NguyenVanCuong.md). |
 | **Đoàn Công Hải** | 2A202603739 | CP4 (Eval nhóm), CP5 (UI & Báo cáo), Tích hợp Telegram | Thiết kế bộ 10 case `eval_group.json`; xây dựng giao diện Streamlit `app.py`; cấu hình và tích hợp bot Telegram gửi tin nhắn thật; tổng hợp live transcript và hoàn thiện báo cáo nhóm. |
 | **Nguyễn Văn Hiếu** | 2A202603746 | Step 4b (Unit test offline & Regression tests) | Thay toàn bộ 17 stub `pytest.skip` trong `tests/test_tools_todo.py` bằng test offline hoàn chỉnh; viết bộ regression test cho tool `hackernews`, phát hiện 2 lỗi quan trọng về validation và timeout giúp hoàn thiện tool (suite đạt 87 passed). |
-| **Lê Nguyễn Anh Khôi** | | CP1, CP2 (Tối ưu Prompt & Tools) | Thiết lập baseline v0, chạy lặp tối ưu prompt v1-v3; chuẩn hóa `system_prompt.md` và `tools.yaml`; ghi log `version_log.csv`. |
+| **Lê Nguyễn Anh Khôi** | 2A202603755 | CP1, CP2 (Tối ưu Prompt & Tools) | Phát triển module tích hợp Groq Provider (`groq_provider.py`) hỗ trợ tool calling; thiết lập baseline v0, thực thi chu trình lặp hypothesis-fix-measure v1–v3; chuẩn hóa `artifacts/system_prompt.md`, `artifacts/tools.yaml` và ghi v0-v3 `version_log.csv`. Báo cáo: [2A202603755_LeNguyenAnhKhoi.md](2A202603755_LeNguyenAnhKhoi.md). |
 
 ## 7. Hạn chế và hướng cải thiện — B6. Reflection
 
-- **Fix nào thuộc `system_prompt.md`?**
-  Các quy tắc về hành vi tổng thể, đặc biệt là **ranh giới an toàn (boundary)**: Bắt buộc phải hỏi xác nhận người dùng (`clarify` với `response_type="yes_no"`) trước khi gọi `send`, và nguyên tắc dừng lại hỏi khi thiếu thông tin quan trọng thay vì tự suy đoán.
-- **Fix nào thuộc `tools.yaml`?**
-  Mô tả chi tiết năng lực của từng tool, enum các giá trị hợp lệ của tham số, quy ước định dạng và hướng dẫn phân biệt rõ ràng giữa các tool tương tự nhau (ví dụ: `hackernews` vs `lookup`, `timeline` vs `social_search`).
-- **Failure nào cần review thủ công thay vì chấm tự động?**
-  Các câu trả lời có tính mở hoặc khi agent diễn đạt câu hỏi làm rõ (`clarify`) bằng nhiều cách hành văn khác nhau nhưng vẫn giữ đúng mục đích; hoặc khi agent tóm tắt bản tin một cách súc tích mà eval tự động chỉ so sánh chuỗi cứng.
-- **Nếu có thêm một vòng, nhóm sẽ thử giả thuyết nào?**
-  Thử nghiệm Few-shot ví dụ về Multi-turn trong System Prompt nhằm cải thiện độ chính xác ở các lượt hội thoại phức tạp (như case `G09` và `G10` khi chuyển đổi ngữ cảnh liên tục giữa tìm bài báo và xác nhận gửi tin).
+### 1. Fix nào thuộc về `system_prompt.md`?
+- Các quy định mang tính **nguyên tắc ứng xử, thẩm quyền và thứ tự ưu tiên chiến lược**:
+  - Quy tắc Confirmation Boundary (mức độ ưu tiên cao nhất, cấm tự ý gửi tin).
+  - Quy tắc phân loại Out-of-Scope (từ chối giải toán, lập trình để tránh kích hoạt tool nhầm).
+  - Quy tắc Argument Hygiene (làm sạch từ khóa, không đưa yếu tố thời gian/thể loại vào trường `query`).
+
+### 2. Fix nào thuộc về `tools.yaml`?
+- Các quy định mang tính **năng lực kỹ thuật, ranh giới dữ liệu và hợp đồng giao tiếp (Contract)**:
+  - Cấu trúc ranh giới hoạt động rõ ràng `DÙNG KHI / KHÔNG DÙNG KHI` cho từng tool.
+  - Khả năng tự động quy đổi định danh người nổi tiếng sang handle chuyên biệt (`Sam Altman` $\rightarrow$ `sama`).
+  - Định nghĩa kiểu dữ liệu chặt chẽ cho parameters (ví dụ: `response_type` enum gồm `text`, `yes_no`, `choice`).
+
+### 3. Failure nào cần review thủ công thay vì chấm tự động?
+- **Case R13 (Parallel Tool Calls):** Khi người dùng hỏi gộp hai nguồn dữ liệu, model `openai/gpt-oss-20b` gọi `lookup` để lấy tin trước và trả lời một phần, sau đó trong hội thoại thực tế người dùng có thể yêu cầu tiếp tweet. Hệ thống eval tự động chấm fail ngay trong single turn vì thiếu `social_search`, nhưng về mặt trải nghiệm hội thoại thực tế (human UX), câu trả lời vẫn có giá trị và hữu ích cho người dùng.
+
+### 4. Nếu có thêm một vòng lặp (v4), nhóm sẽ thử giả thuyết nào?
+- **Giả thuyết cho v4:** Bổ sung kỹ thuật **Few-shot Function Calling In-Context** vào `system_prompt.md` mô phỏng chính xác cặp cú pháp gọi song song hai công cụ `[{"name": "lookup", ...}, {"name": "social_search", ...}]`. Giả thuyết này kỳ vọng sẽ kích hoạt thành công khả năng parallel tool call của model mã nguồn mở trên Groq, giải quyết dứt điểm case R13 còn sót lại để nâng accuracy lên tuyệt đối $100\%$ ($20/20$).
 
 ## 8. Tài liệu tham khảo
 
@@ -185,3 +229,4 @@ Lấy từ `starter_v0/transcripts/v4_groq_20261111T065440457626.transcript.json
 - Hacker News Firebase API: https://github.com/HackerNews/API
 - Telegram Bot API Documentation: https://core.telegram.org/bots/api
 - Groq Cloud API Documentation: https://console.groq.com/docs
+- Benchmark Dataset — `starter_v0/data/eval_base.json` & `starter_v0/runs/*.json`.

@@ -14,7 +14,7 @@
 |   1 | Nguyễn Văn Cường | 2A202603750 | nvcuong9696@gmail.com | nvcuong96 | Trưởng nhóm, CP3 (Tool mới `hackernews`), Phân tích lỗi |
 |   2 | Đoàn Công Hải | 2A202603739 | haidoan2004426@gmail.com | rawser246 | Thành viên, CP4, CP5 (UI & Báo cáo), Tích hợp Telegram |
 |   3 | Nguyễn Văn Hiếu | 2A202603746 | 26ai.hieunv3@vinuni.edu.vn | | Thành viên, Step 4b (Unit test suite & Regression tests) |
-|   4 | Lê Nguyễn Anh Khôi | | lnakhoi5a@gmail.com | KN16 | Thành viên, CP1, CP2 (Tối ưu Prompt & Tools v0-v3) |
+|   4 | Lê Nguyễn Anh Khôi | 2A202603755 | lnakhoi5a@gmail.com | KN16 | Thành viên, CP1, CP2 (Tối ưu Prompt & Tools v0-v3), Groq Provider |
 
 ## Cá nhân
 
@@ -94,3 +94,32 @@ Ví dụ: `report/team/2A202603750_NguyenVanCuong.md`, `report/team/2A202603739_
 - Commit: `82a3175 test: complete tool unit test challenge`
 - Kết quả test: 87 passed (17 passed trong file Step 4b, 0 failed, 0 skipped)
 - Báo cáo cá nhân: `report/team/2A202603746_NguyenVanHieu.md`
+
+## LeNguyenAnhKhoi
+
+### Phần việc phụ trách
+
+- Chịu trách nhiệm chính Checkpoint 1 & Checkpoint 2 (CP1, CP2): Thiết lập baseline v0, thực thi chu trình lặp cải tiến Hypothesis – Fix – Measure từ v1 đến v3; chuẩn hóa `system_prompt.md` và `tools.yaml`.
+- Phát triển và tích hợp module Groq Provider (`groq_provider.py`) hỗ trợ cơ chế Tool Calling / Function Calling.
+- Ghi nhận và kiểm toán toàn bộ chu trình thực nghiệm vào `version_log.csv`.
+
+### Đóng góp cụ thể
+
+- Lập trình adapter kết nối Groq API thông qua OpenAI-compatible client (`starter_v0/providers/groq_provider.py`), xử lý chuyển đổi format function calling schema và quản lý ngoại lệ; bổ sung tùy chọn `groq` đồng bộ vào `starter_v0/providers/__init__.py`, `starter_v0/scripts/preflight_provider.py` và `starter_v0/run_eval.py`.
+- Khảo sát Baseline v0: Chạy benchmark phát hiện lỗi gốc Provider Error HTTP 400 tại Case R13 (`Tool choice is required`), xung đột ranh giới tại Case R12 và thiếu ánh xạ handle tại Case R01.
+- Vòng lặp v1: Bổ sung cấu trúc schema tường minh và quy tắc Multi-Tool calling trong `artifacts/system_prompt.md`, khắc phục triệt để lỗi HTTP 400 tại Case R13.
+- Vòng lặp v2: Xử lý hiện tượng suy giảm năng lực (Regression tại Case R01) bằng cách nhúng trực tiếp tri thức ánh xạ (`Sam Altman -> sama`) vào mô tả của tool `timeline` trong `artifacts/tools.yaml` thay vì nhồi nhét vào prompt.
+- Vòng lặp v3: Tái cấu trúc `artifacts/system_prompt.md`, thiết lập nguyên tắc phân cấp cưỡng chế với Confirmation Boundary là ưu tiên cao nhất (Highest Priority), giải quyết triệt để xung đột ranh giới xác nhận Telegram `yes_no` tại Case R12.
+- Kiểm toán và ghi chép trung thực toàn bộ diễn tiến thực nghiệm v0–v3 vào `version_log.csv` theo chuẩn quy trình Hypothesis – Fix – Measure.
+
+### Bằng chứng
+
+- File:
+  - `starter_v0/providers/groq_provider.py`
+  - `starter_v0/providers/__init__.py`
+  - `starter_v0/scripts/preflight_provider.py`
+  - `starter_v0/run_eval.py`
+  - `artifacts/system_prompt.md`
+  - `artifacts/tools.yaml`
+  - `version_log.csv`
+- Báo cáo cá nhân: `report/team/2A202603755_LeNguyenAnhKhoi.md`
