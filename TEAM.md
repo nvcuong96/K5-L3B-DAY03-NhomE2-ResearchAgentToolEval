@@ -24,7 +24,28 @@ Mỗi thành viên đồng thời tạo một báo cáo riêng trong `report/` t
 report/team/MSSV_HoTen.md
 ```
 
-Ví dụ: `report/team/DoanCongHai.md`.
+Ví dụ: `report/team/2A202603750_NguyenVanCuong.md`, `report/team/2A202603739_DoanCongHai.md`.
+
+## NguyenVanCuong
+
+### Phần việc phụ trách
+
+- Trưởng nhóm, điều phối tiến độ chung của nhóm.
+- Chịu trách nhiệm chính Checkpoint 3: Thiết kế, cài đặt, đăng ký và tích hợp tool mới `hackernews` (`starter_v0/tools/hackernews/`).
+- Phân tích lỗi (Failure Analysis) và tổng hợp dữ liệu chạy baseline.
+
+### Đóng góp cụ thể
+
+- Hiện thực hàm `get_hn_stories` gọi public Hacker News Firebase API, giới hạn số bài trả về từ 1 đến 20 và chuẩn hóa dữ liệu thành tiêu đề, URL, nguồn, điểm số và số bình luận.
+- Thêm URL dự phòng trỏ tới trang thảo luận Hacker News nếu bài viết không có URL riêng; kiểm tra loại bài viết hợp lệ (`top`, `new`, `best`) và trả lỗi theo cấu trúc chuẩn dùng chung khi API hoặc đầu vào gặp sự cố.
+- Soạn thảo tài liệu `TOOL.md`, khai báo schema tham số trong `tools.yaml` và đăng ký tool trong `tools/__init__.py`.
+- Viết 3 unit test cho tool `hackernews` bao phủ kết quả bình thường, loại bài viết không hợp lệ và lỗi mạng (dùng mock để không phụ thuộc API thật).
+
+### Bằng chứng
+
+- File: `starter_v0/tools/hackernews/tool.py`, `starter_v0/tools/hackernews/TOOL.md`, `starter_v0/artifacts/tools.yaml`, `starter_v0/tools/__init__.py`.
+- Commit: `c12890d` (thêm tool và tích hợp); `01c232a` (hoàn thiện xử lý phản hồi và lỗi).
+- Báo cáo cá nhân: `report/team/2A202603750_NguyenVanCuong.md`.
 
 ## DoanCongHai
 
